@@ -16,7 +16,6 @@
         public string UsedPart { get; set; }
         public string Benefits { get; set; }
         public string Description { get; set; }
-
         public HerbImage Image { get; set; }
     }
 }
