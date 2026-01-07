@@ -1,4 +1,4 @@
-﻿айлът трябва да е ТОЧНО ТАКЪВ:
+﻿//айлът трябва да е ТОЧНО ТАКЪВ:
 
 using Microsoft.EntityFrameworkCore;
 using BilkoNavigator_.Models;

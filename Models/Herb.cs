@@ -5,7 +5,7 @@
         public int Id { get; set; }
         public string PopularName { get; set; }    
         public string LatinName { get; set; }        
-        public string DialectNames { get; set; }     а
+        public string DialectNames { get; set; }     
 
         public string Aroma { get; set; }
         public string Taste { get; set; }
@@ -16,6 +16,8 @@
         public string UsedPart { get; set; }
         public string Benefits { get; set; }
         public string Description { get; set; }
+
+        public HerbImage Image { get; set; }
     }
 }
 
