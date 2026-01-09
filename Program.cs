@@ -59,7 +59,17 @@ app.UseRouting();
 app.UseAuthentication(); // Ensure authentication middleware is added
 app.UseAuthorization();
 
-app.MapRazorPages(); // Map Razor Pages
-app.MapDefaultControllerRoute();
+// Explicitly map Razor Pages
+app.MapRazorPages();
+
+// Explicitly map controllers
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Ensure HerbsController is mapped
+app.MapControllerRoute(
+    name: "herbs",
+    pattern: "Herbs/{action=Index}/{id?}");
 
 app.Run();

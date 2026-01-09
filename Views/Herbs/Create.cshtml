@@ -11,67 +11,83 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="PopularName" class="control-label"></label>
+                <label asp-for="PopularName" class="control-label">Популярно име</label>
                 <input asp-for="PopularName" class="form-control" />
                 <span asp-validation-for="PopularName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="LatinName" class="control-label"></label>
+                <label asp-for="LatinName" class="control-label">Латинско име</label>
                 <input asp-for="LatinName" class="form-control" />
                 <span asp-validation-for="LatinName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="DialectNames" class="control-label"></label>
+                <label asp-for="DialectNames" class="control-label">Диалектно име</label>
                 <input asp-for="DialectNames" class="form-control" />
                 <span asp-validation-for="DialectNames" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Aroma" class="control-label"></label>
+                <label asp-for="Aroma" class="control-label">Аромат</label>
                 <input asp-for="Aroma" class="form-control" />
                 <span asp-validation-for="Aroma" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Taste" class="control-label"></label>
+                <label asp-for="Taste" class="control-label">Вкус</label>
                 <input asp-for="Taste" class="form-control" />
                 <span asp-validation-for="Taste" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Habitat" class="control-label"></label>
+                <label asp-for="Habitat" class="control-label">Местообитание</label>
                 <input asp-for="Habitat" class="form-control" />
                 <span asp-validation-for="Habitat" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Season" class="control-label"></label>
+                <label asp-for="Season" class="control-label">Сезон</label>
                 <input asp-for="Season" class="form-control" />
                 <span asp-validation-for="Season" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsPoisonous" /> @Html.DisplayNameFor(model => model.IsPoisonous)
-                </label>
+
+           @*  <div class="form-group form-check">
+                <input asp-for="IsPoisonous" class="form-check-input" />
+                <label asp-for="IsPoisonous" class="form-check-label"></label>
             </div>
+
             <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsProtected" /> @Html.DisplayNameFor(model => model.IsProtected)
-                </label>
+                <input asp-for="IsProtected" class="form-check-input" />
+                <label asp-for="IsProtected" class="form-check-label"></label>
+            </div> *@
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" asp-for="IsPoisonous" />
+                <label class="form-check-label" asp-for="IsPoisonous">Отровно</label>
+            </div>
+
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" asp-for="IsProtected" />
+                <label class="form-check-label" asp-for="IsProtected">Защитено</label>
             </div>
             <div class="form-group">
-                <label asp-for="UsedPart" class="control-label"></label>
+                <label asp-for="UsedPart" class="control-label">Използваема част</label>
                 <input asp-for="UsedPart" class="form-control" />
                 <span asp-validation-for="UsedPart" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Benefits" class="control-label"></label>
+                <label asp-for="Benefits" class="control-label">Ползи</label>
                 <input asp-for="Benefits" class="form-control" />
                 <span asp-validation-for="Benefits" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
+                <label asp-for="Description" class="control-label">Описание</label>
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label for="Image">Upload Image</label>
+                <input type="file" name="Image" id="Image" class="form-control" accept="image/*" onchange="previewImage(event)" />
+                <div class="mt-3">
+                    <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 200px; max-height: 200px; display: none;" />
+                </div>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
@@ -85,5 +101,25 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function previewImage(event) {
+            const imagePreview = document.getElementById('imagePreview');
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = "#";
+                imagePreview.style.display = 'none';
+            }
+        }
+    </script>
 }

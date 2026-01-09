@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace BilkoNavigator_.Controllers
 {
@@ -58,14 +60,37 @@ namespace BilkoNavigator_.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,PopularName,LatinName,DialectNames,Aroma,Taste,Habitat,Season,IsPoisonous,IsProtected,UsedPart,Benefits,Description")] Herb herb)
+        public async Task<IActionResult> Create([Bind("Id,PopularName,LatinName,DialectNames,Aroma,Taste,Habitat,Season,IsPoisonous,IsProtected,UsedPart,Benefits,Description")] Herb herb, IFormFile Image)
         {
             if (ModelState.IsValid)
             {
+                if (Image != null && Image.Length > 0)
+                {
+                    var imagePath = Path.Combine("wwwroot/images", Image.FileName);
+
+                    using (var stream = new FileStream(imagePath, FileMode.Create))
+                    {
+                        await Image.CopyToAsync(stream);
+                    }
+
+                    herb.Image = new HerbImage
+                    {
+                        ImagePath = $"/images/{Image.FileName}",
+                        UploadedOn = DateTime.Now
+                    };
+                }
+
                 _context.Add(herb);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            // Log validation errors for debugging
+            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+            {
+                Console.WriteLine($"Validation Error: {error.ErrorMessage}");
+            }
+
             return View(herb);
         }
 
