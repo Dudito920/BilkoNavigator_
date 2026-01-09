@@ -14,7 +14,6 @@ namespace BilkoNavigator_.Pages
 
         public void OnGet()
         {
-
         }
     }
 }

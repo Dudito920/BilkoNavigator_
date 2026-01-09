@@ -1,0 +1,101 @@
+﻿@model BilkoNavigator_.Models.Herb
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Herb</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.PopularName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.PopularName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.LatinName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LatinName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DialectNames)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DialectNames)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Aroma)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Aroma)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Taste)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Taste)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Habitat)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Habitat)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Season)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Season)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.IsPoisonous)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.IsPoisonous)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.IsProtected)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.IsProtected)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.UsedPart)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.UsedPart)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Benefits)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Benefits)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+    </dl>
+</div>
+@if (!Model.IsProtected)
+{
+    <form method="get" asp-controller="HerbFindings" asp-action="Create" asp-route-herbId="@Model.Id">
+        <button type="submit" class="btn btn-success">Добави място</button>
+    </form>
+}
+else
+{
+    <div class="alert alert-warning">Тази билка е защитена и не могат да се добавят места.</div>
+}
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

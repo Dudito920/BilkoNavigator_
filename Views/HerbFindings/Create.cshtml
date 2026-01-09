@@ -1,0 +1,23 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Добави място";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+<h2>Добави място за билка</h2>
+<form asp-action="Create" method="post">
+    <input type="hidden" name="herbId" value="@ViewBag.HerbId" />
+    <div class="form-group">
+        <label>Ширина (Latitude)</label>
+        <input type="number" step="any" name="latitude" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Дължина (Longitude)</label>
+        <input type="number" step="any" name="longitude" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Описание</label>
+        <input type="text" name="description" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Запази</button>
+</form>
+<a asp-controller="Herbs" asp-action="Details" asp-route-id="@ViewBag.HerbId">Назад към билката</a>

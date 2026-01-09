@@ -1,9 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BilkoNavigator_.Data;
+using BilkoNavigator_.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BilkoNavigator_.Controllers
 {
     public class RecognitionController : Controller
     {
+        private readonly AppDbContext _context;
+        private readonly UserManager<User> _userManager;
+
+
+        public RecognitionController(AppDbContext context, UserManager<User> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
         [HttpGet]
         public IActionResult Upload()
         {
