@@ -31,24 +31,22 @@ namespace BilkoNavigator_.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Aroma")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Benefits")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DialectNames")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Habitat")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ImageId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsPoisonous")
                         .HasColumnType("bit");
@@ -57,7 +55,6 @@ namespace BilkoNavigator_.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LatinName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PopularName")
@@ -65,18 +62,17 @@ namespace BilkoNavigator_.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Season")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Taste")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UsedPart")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageId");
 
                     b.ToTable("Herbs");
                 });
@@ -121,28 +117,13 @@ namespace BilkoNavigator_.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("HerbId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ImagePath")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UploadedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("HerbId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("HerbImages");
                 });
@@ -372,6 +353,15 @@ namespace BilkoNavigator_.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("BilkoNavigator_.Models.Herb", b =>
+                {
+                    b.HasOne("BilkoNavigator_.Models.HerbImage", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageId");
+
+                    b.Navigation("Image");
+                });
+
             modelBuilder.Entity("BilkoNavigator_.Models.HerbFinding", b =>
                 {
                     b.HasOne("BilkoNavigator_.Models.Herb", "Herb")
@@ -395,23 +385,6 @@ namespace BilkoNavigator_.Migrations
                     b.Navigation("Herb");
 
                     b.Navigation("Location");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BilkoNavigator_.Models.HerbImage", b =>
-                {
-                    b.HasOne("BilkoNavigator_.Models.Herb", "Herb")
-                        .WithOne("Image")
-                        .HasForeignKey("BilkoNavigator_.Models.HerbImage", "HerbId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BilkoNavigator_.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId1");
-
-                    b.Navigation("Herb");
 
                     b.Navigation("User");
                 });
@@ -464,12 +437,6 @@ namespace BilkoNavigator_.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("BilkoNavigator_.Models.Herb", b =>
-                {
-                    b.Navigation("Image")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

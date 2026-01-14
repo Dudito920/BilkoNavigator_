@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BilkoNavigator_.Migrations
 {
     /// <inheritdoc />
-    public partial class first : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -52,27 +52,17 @@ namespace BilkoNavigator_.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Herbs",
+                name: "HerbImages",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PopularName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LatinName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DialectNames = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Aroma = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Taste = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Habitat = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Season = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsPoisonous = table.Column<bool>(type: "bit", nullable: false),
-                    IsProtected = table.Column<bool>(type: "bit", nullable: false),
-                    UsedPart = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Benefits = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UploadedOn = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Herbs", x => x.Id);
+                    table.PrimaryKey("PK_HerbImages", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -197,31 +187,33 @@ namespace BilkoNavigator_.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "HerbImages",
+                name: "Herbs",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UploadedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    HerbId = table.Column<int>(type: "int", nullable: false),
-                    UserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    PopularName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LatinName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DialectNames = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Aroma = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Taste = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Habitat = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Season = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsPoisonous = table.Column<bool>(type: "bit", nullable: false),
+                    IsProtected = table.Column<bool>(type: "bit", nullable: false),
+                    UsedPart = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Benefits = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HerbImages", x => x.Id);
+                    table.PrimaryKey("PK_Herbs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_HerbImages_AspNetUsers_UserId1",
-                        column: x => x.UserId1,
-                        principalTable: "AspNetUsers",
+                        name: "FK_Herbs_HerbImages_ImageId",
+                        column: x => x.ImageId,
+                        principalTable: "HerbImages",
                         principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_HerbImages_Herbs_HerbId",
-                        column: x => x.HerbId,
-                        principalTable: "Herbs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -313,15 +305,9 @@ namespace BilkoNavigator_.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HerbImages_HerbId",
-                table: "HerbImages",
-                column: "HerbId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_HerbImages_UserId1",
-                table: "HerbImages",
-                column: "UserId1");
+                name: "IX_Herbs_ImageId",
+                table: "Herbs",
+                column: "ImageId");
         }
 
         /// <inheritdoc />
@@ -346,19 +332,19 @@ namespace BilkoNavigator_.Migrations
                 name: "HerbFindings");
 
             migrationBuilder.DropTable(
-                name: "HerbImages");
-
-            migrationBuilder.DropTable(
                 name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "Locations");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Herbs");
+
+            migrationBuilder.DropTable(
+                name: "Locations");
+
+            migrationBuilder.DropTable(
+                name: "HerbImages");
         }
     }
 }
