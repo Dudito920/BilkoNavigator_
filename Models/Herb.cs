@@ -19,8 +19,8 @@ namespace BilkoNavigator_.Models
         public string? Habitat { get; set; }
         public string? Season { get; set; }
 
-        public bool IsPoisonous { get; set; }
-        public bool IsProtected { get; set; }
+        public bool IsPoisonous { get; set; } = false;
+        public bool IsProtected { get; set; } = false;
 
         public string? UsedPart { get; set; }
         public string? Benefits { get; set; }

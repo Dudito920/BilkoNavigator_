@@ -92,6 +92,18 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
+
+              <td> @if (item.Image != null)
+                {
+                    <img src="@item.Image.ImagePath"
+                         style="max-width:120px; max-height:120px; object-fit:cover; border-radius:6px;" />
+                }
+                else
+                {
+                    <span class="text-muted">Няма снимка</span>
+                }
+                </td>
+
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
@@ -101,3 +113,102 @@
 }
     </tbody>
 </table>
+
+
+@* @model IEnumerable<BilkoNavigator_.Models.Herb>
+
+@{
+    ViewData["Title"] = "Herbs";
+}
+
+<h1 class="mb-4">Билки</h1>
+
+<a asp-action="Create" class="btn btn-success mb-4">➕ Добави билка</a>
+
+<div class="row">
+    @foreach (var herb in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+
+                @if (herb.Image != null)
+                {
+                    <img src="@herb.Image.ImagePath"
+                         class="card-img-top"
+                         style="height:200px; object-fit:cover;" />
+                }
+                else
+                {
+                    <div style="height:200px;
+                                    background:#eee;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;">
+                        Няма изображение
+                    </div>
+                }
+
+                <div class="card-body">
+                    <h5 class="card-title">@herb.PopularName</h5>
+                    <p class="card-text">@herb.LatinName</p>
+
+                    <span class="badge bg-danger @(herb.IsPoisonous ? "" : "d-none")">Отровно</span>
+                    <span class="badge bg-warning text-dark @(herb.IsProtected ? "" : "d-none")">Защитено</span>
+                </div>
+
+                <div class="card-footer d-flex justify-content-between">
+                    <a asp-action="Edit"
+                       asp-route-id="@herb.Id"
+                       class="btn btn-primary btn-sm">✏ Edit</a>
+
+                    <button class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal"
+                            data-id="@herb.Id"
+                            data-name="@herb.PopularName">
+                        🗑 Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="deleteId" name="id" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Изтриване</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    Сигурен ли си, че искаш да изтриеш
+                    <strong id="deleteName"></strong>?
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                    <button type="submit" class="btn btn-danger">Изтрий</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            document.getElementById('deleteId').value = button.getAttribute('data-id');
+            document.getElementById('deleteName').textContent = button.getAttribute('data-name');
+        });
+    </script>
+}
+ *@

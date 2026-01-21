@@ -30,10 +30,10 @@ namespace BilkoNavigator_.Controllers
         }
 
         // GET: Herbs
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Herbs.ToListAsync());
-        }
+        //public async Task<IActionResult> Index()
+        //{
+        //    return View(await _context.Herbs.ToListAsync());
+        //}
 
         // GET: Herbs/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -107,11 +107,19 @@ namespace BilkoNavigator_.Controllers
         ////    return View(herb);
         ////}
 
+        // POST: Herbs/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Herb herb, IFormFile Image)
+        public async Task<IActionResult> Create(Herb herb)
         {
+//            Console.WriteLine(">>> POST CREATE HIT <<<"); 
+//            Console.WriteLine(
+//    herb.ImageFile == null
+//        ? "❌ ImageFile = NULL"
+//        : $"✅ ImageFile = {herb.ImageFile.FileName}, {herb.ImageFile.Length} bytes"
+//);
 
+            // Логване на ModelState грешки
             foreach (var state in ModelState)
             {
                 foreach (var error in state.Value.Errors)
@@ -120,27 +128,26 @@ namespace BilkoNavigator_.Controllers
                 }
             }
 
+            // Премахваме Image от валидацията, защото е [NotMapped]
+            ModelState.Remove(nameof(Herb.Image));
+
             if (!ModelState.IsValid)
             {
-                return View(herb); 
+                return View(herb);
             }
 
-            if (Image != null && Image.Length > 0)
+            // Записване на файл, ако има
+            if (herb.ImageFile != null && herb.ImageFile.Length > 0)
             {
                 var imagesDir = Path.Combine(_environment.WebRootPath, "images");
+               
+                Directory.CreateDirectory(imagesDir);
 
-                if (!Directory.Exists(imagesDir))
-                {
-                    Directory.CreateDirectory(imagesDir);
-                }
-
-                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(Image.FileName)}";
+                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(herb.ImageFile.FileName)}";
                 var fullPath = Path.Combine(imagesDir, fileName);
 
-                using (var stream = new FileStream(fullPath, FileMode.Create))
-                {
-                    await Image.CopyToAsync(stream);
-                }
+                using var stream = new FileStream(fullPath, FileMode.Create);
+                await herb.ImageFile.CopyToAsync(stream);
 
                 herb.Image = new HerbImage
                 {
@@ -149,81 +156,172 @@ namespace BilkoNavigator_.Controllers
                 };
             }
 
+            // Добавяне в базата
             _context.Herbs.Add(herb);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index)); 
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Herbs/Index
+        //public async Task<IActionResult> Index()
+        //{
+        //    var herbs = await _context.Herbs.Include(h => h.Image).ToListAsync();
+        //    return View(herbs);
+        //}
+        public async Task<IActionResult> Index()
+        {
+            var herbs = await _context.Herbs
+                .Include(h => h.Image)
+                .ToListAsync();
+
+            return View(herbs);
         }
 
 
         // GET: Herbs/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var herb = await _context.Herbs
+                .Include(h => h.Image)
+                .FirstOrDefaultAsync(h => h.Id == id);
 
-            var herb = await _context.Herbs.FindAsync(id);
-            if (herb == null)
-            {
-                return NotFound();
-            }
+            if (herb == null) return NotFound();
+
             return View(herb);
         }
 
         // POST: Herbs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,PopularName,LatinName,DialectNames,Aroma,Taste,Habitat,Season,IsPoisonous,IsProtected,UsedPart,Benefits,Description")] Herb herb)
+        public async Task<IActionResult> Edit(int id, Herb herb)
         {
-            if (id != herb.Id)
+            if (id != herb.Id) return NotFound();
+
+            ModelState.Remove(nameof(Herb.Image));
+
+            if (!ModelState.IsValid)
+                return View(herb);
+
+            var dbHerb = await _context.Herbs
+                .Include(h => h.Image)
+                .FirstAsync(h => h.Id == id);
+
+            dbHerb.PopularName = herb.PopularName;
+            dbHerb.LatinName = herb.LatinName;
+            dbHerb.IsPoisonous = herb.IsPoisonous;
+            dbHerb.IsProtected = herb.IsProtected;
+
+            if (herb.ImageFile != null)
             {
-                return NotFound();
+                var imagesDir = Path.Combine(_environment.WebRootPath, "images");
+                Directory.CreateDirectory(imagesDir);
+
+                var fileName = $"{Guid.NewGuid()}_{herb.ImageFile.FileName}";
+                var path = Path.Combine(imagesDir, fileName);
+
+                using var stream = new FileStream(path, FileMode.Create);
+                await herb.ImageFile.CopyToAsync(stream);
+
+                dbHerb.Image = new HerbImage
+                {
+                    ImagePath = "/images/" + fileName
+                };
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(herb);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!HerbExists(herb.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(herb);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: Herbs/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // POST: Herbs/Delete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var herb = await _context.Herbs
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (herb == null)
+                .Include(h => h.Image)
+                .FirstOrDefaultAsync(h => h.Id == id);
+
+            if (herb != null)
             {
-                return NotFound();
+                _context.Herbs.Remove(herb);
+                await _context.SaveChangesAsync();
             }
 
-            return View(herb);
+            return RedirectToAction(nameof(Index));
         }
+
+
+
+
+        // GET: Herbs/Edit/5
+        //public async Task<IActionResult> Edit(int? id)
+        //{
+        //    if (id == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    var herb = await _context.Herbs.FindAsync(id);
+        //    if (herb == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    return View(herb);
+        //}
+
+        //// POST: Herbs/Edit/5
+        //// To protect from overposting attacks, enable the specific properties you want to bind to.
+        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(int id, [Bind("Id,PopularName,LatinName,DialectNames,Aroma,Taste,Habitat,Season,IsPoisonous,IsProtected,UsedPart,Benefits,Description")] Herb herb)
+        //{
+        //    if (id != herb.Id)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            _context.Update(herb);
+        //            await _context.SaveChangesAsync();
+        //        }
+        //        catch (DbUpdateConcurrencyException)
+        //        {
+        //            if (!HerbExists(herb.Id))
+        //            {
+        //                return NotFound();
+        //            }
+        //            else
+        //            {
+        //                throw;
+        //            }
+        //        }
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    return View(herb);
+        //}
+
+        //// GET: Herbs/Delete/5
+        //public async Task<IActionResult> Delete(int? id)
+        //{
+        //    if (id == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    var herb = await _context.Herbs
+        //        .FirstOrDefaultAsync(m => m.Id == id);
+        //    if (herb == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return View(herb);
+        //}
 
         // POST: Herbs/Delete/5
         [HttpPost, ActionName("Delete")]

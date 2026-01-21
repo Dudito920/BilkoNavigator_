@@ -80,4 +80,7 @@ app.MapControllerRoute(
     name: "herbs",
     pattern: "Herbs/{action=Index}/{id?}");
 
+//следващото е излишно
+app.MapRazorPages();
+
 app.Run();

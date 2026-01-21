@@ -1,4 +1,4 @@
-﻿@model BilkoNavigator_.Models.Herb
+﻿@* @model BilkoNavigator_.Models.Herb
 
 @{
     ViewData["Title"] = "Edit";
@@ -88,3 +88,100 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+ *@
+
+@model BilkoNavigator_.Models.Herb
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+
+<h1>Edit Herb</h1>
+
+<form asp-controller="Herbs"
+      asp-action="Edit"
+      method="post"
+      enctype="multipart/form-data">
+
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Id" value="@Model.Id" />
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group">
+        <label>Популярно име</label>
+        <input type="text" name="PopularName" value="@Model.PopularName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Латинско име</label>
+        <input type="text" name="LatinName" value="@Model.LatinName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Диалектно име</label>
+        <input type="text" name="DialectNames" value="@Model.DialectNames" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Аромат</label>
+        <input type="text" name="Aroma" value="@Model.Aroma" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Вкус</label>
+        <input type="text" name="Taste" value="@Model.Taste" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Местообитание</label>
+        <input type="text" name="Habitat" value="@Model.Habitat" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Сезон</label>
+        <input type="text" name="Season" value="@Model.Season" class="form-control" />
+    </div>
+
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" name="IsPoisonous" value="true" @(Model.IsPoisonous ? "checked" : "") />
+        <label class="form-check-label">Отровно</label>
+    </div>
+
+    <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" name="IsProtected" value="true" @(Model.IsProtected ? "checked" : "") />
+        <label class="form-check-label">Защитено</label>
+    </div>
+
+    <div class="form-group">
+        <label>Използваема част</label>
+        <input type="text" name="UsedPart" value="@Model.UsedPart" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Ползи</label>
+        <input type="text" name="Benefits" value="@Model.Benefits" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Описание</label>
+        <textarea name="Description" class="form-control">@Model.Description</textarea>
+    </div>
+
+    @if (Model.Image != null)
+    {
+        <div class="mb-3">
+            <img src="@Model.Image.ImagePath" style="max-width:200px; border:1px solid #ccc;" />
+        </div>
+    }
+
+    <div class="form-group">
+        <label>Смени изображение</label>
+        <input type="file" name="ImageFile" class="form-control" accept="image/*" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Запази</button>
+    <a asp-action="Index" class="btn btn-secondary">Назад</a>
+</form>
