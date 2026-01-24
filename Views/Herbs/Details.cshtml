@@ -89,11 +89,12 @@
         <dd class="col-sm-10">
             @if (Model.Image != null)
             {
-                <img src="@Model.Image.ImagePath" alt="Herb Image" style="max-width: 200px; max-height: 200px;" />
+                <img src="@Model.Image.ImagePath"
+                     style="max-width:120px; max-height:120px; object-fit:cover; border-radius:6px;" />
             }
             else
             {
-                <span>No image available</span>
+                <span class="text-muted">Няма снимка</span>
             }
         </dd>
     </dl>
