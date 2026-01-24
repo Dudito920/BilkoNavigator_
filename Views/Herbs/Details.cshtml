@@ -9,6 +9,8 @@
 
 <div>
     <h4>Herb</h4>
+  
+
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -101,9 +103,14 @@
 </div>
 @if (!Model.IsProtected)
 {
-    <form method="get" asp-controller="HerbFindings" asp-action="Create" asp-route-herbId="@Model.Id">
-        <button type="submit" class="btn btn-success">Добави място</button>
-    </form>
+    @* <form method="get" asp-controller="HerbFindings" asp-action="Create" asp-route-herbId="@Model.Id"> *@
+        <button class="btn btn-success" onclick="markFinding(@Model.Id)">
+            📍 Намерих тази билка
+        </button>
+
+        <h3>Карта на откритията</h3>
+        <div id="map" style="height: 400px;"></div>
+   @*  </form> *@
 }
 else
 {
@@ -113,3 +120,72 @@ else
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+
+<form>
+    @Html.AntiForgeryToken()
+</form>
+@section Scripts {
+    <script>
+        // 1) Създаваме карта
+        const map = L.map('map').setView([42.7339, 25.4858], 7);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // 2) Зареждаме вече запазени точки
+        fetch(`/HerbFindings/GetFindings?herbId=@Model.Id`)
+            .then(r => r.json())
+            .then(points => {
+                points.forEach(p => {
+                    L.marker([p.latitude, p.longitude])
+                        .addTo(map)
+                        .bindPopup("Намерено на: " + new Date(p.foundOn).toLocaleString());
+                });
+            });
+
+        // 3) Функция за записване на нова точка
+        function markFinding(herbId) {
+            if (!navigator.geolocation) {
+                alert("Геолокацията не се поддържа");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const data = {
+                        herbId: herbId,
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+
+                    fetch('/HerbFindings/Create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken':
+                                document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(r => {
+                        if (r.ok) {
+                            alert("Записано!");
+                            location.reload(); // обновява картата
+                        } else {
+                            alert("Грешка при запис");
+                        }
+                    });
+                },
+                error => {
+                    alert("Не може да се вземе местоположение");
+                }
+            );
+        }
+    </script>
+}
+
