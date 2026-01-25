@@ -1,4 +1,5 @@
 using BilkoNavigator_.Data;
+using BilkoNavigator_.Data.Seed;
 using BilkoNavigator_.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -33,6 +34,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 //Add Identity
 builder.Services.AddIdentity<User, IdentityRole>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 builder.Services.AddRazorPages();
@@ -60,6 +62,17 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 //builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 
 var app = builder.Build();
+
+//Seed data 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    var env = services.GetRequiredService<IWebHostEnvironment>();
+
+    await HerbSeeder.SeedAsync(context, env);
+}
+
 
 // Middleware
 app.UseStaticFiles();

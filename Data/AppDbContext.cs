@@ -18,5 +18,14 @@ namespace BilkoNavigator_.Data
         public DbSet<Location> Locations { get; set; }
         public DbSet<HerbFinding> HerbFindings { get; set; }
         public DbSet<HerbImage> HerbImages { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder); // ⚠️ важно!
+
+            modelBuilder.Entity<Herb>()
+                .HasIndex(h => h.LatinName)
+                .IsUnique();
+        }
     }
 }
