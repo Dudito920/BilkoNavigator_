@@ -12,7 +12,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-
+Console.WriteLine(  "Hello");
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 //builder.Services.AddDbContext<AppDbContext>(options =>
