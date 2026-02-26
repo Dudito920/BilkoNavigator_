@@ -10,7 +10,7 @@ namespace BilkoNavigator_.Models
         
         public int HerbId { get; set; }
         [ValidateNever]
-        public Herb Herb { get; set; }
+        public Herb Herb { get; set; } = null!;
 
         //public string? UserId { get; set; }
         //[ValidateNever]

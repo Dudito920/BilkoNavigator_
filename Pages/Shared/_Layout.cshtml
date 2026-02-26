@@ -1,51 +1,140 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BilkoNavigator_</title>
+    <title>@ViewData["Title"] - BilkoNavigator</title>
+    <link rel="icon" type="image/png" href="~/images/logo.png" asp-append-version="true" />
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Base (you said they are in styles/base) -->
+    <link rel="stylesheet" href="~/styles/base/reset.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/styles/base/theme.css" asp-append-version="true" />
+
+    <!-- Main site css -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
     <link rel="stylesheet" href="~/BilkoNavigator_.styles.css" asp-append-version="true" />
 </head>
+
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">BilkoNavigator_</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+        <nav class="bn-navbar navbar navbar-expand-lg">
+            <div class="container bn-navbar__container">
+                <a class="bn-brand" asp-area="" asp-page="/Index" aria-label="Начало">
+                    <img src="~/images/logo.png"
+                         asp-append-version="true"
+                         alt="BilkoNavigator"
+                         class="bn-brand__logo-img" />
+                </a>
+
+                <button class="navbar-toggler bn-toggler" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#bnNav"
+                        aria-controls="bnNav" aria-expanded="false" aria-label="Меню">
+                    <span class="bn-toggler__line"></span>
+                    <span class="bn-toggler__line"></span>
+                    <span class="bn-toggler__line"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse" id="bnNav">
+                    <ul class="navbar-nav bn-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                            <a class="bn-link nav-link" asp-area="" asp-page="/Index">Начало</a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                            <!-- ако още нямаш MapController, временно го насочи към Herbs/Index -->
+                            <a class="bn-link nav-link" asp-controller="Map" asp-action="Index">Карта на билките</a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Herbs" asp-action="Index">Herbs</a>
+                            <!-- ако още нямаш RecognitionController, временно го насочи към Herbs/Index -->
+                            <a class="bn-link nav-link" asp-controller="Recognition" asp-action="Index">Разпознаване</a>
                         </li>
-                      
+
+                        <li class="nav-item">
+                            <a class="bn-link nav-link" asp-controller="Herbs" asp-action="Index">Каталог</a>
+                        </li>
+
+                        @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="bn-link nav-link" asp-controller="Admin" asp-action="Users">Администрация</a>
+                            </li>
+                        }
                     </ul>
-                    <partial name="_LoginPartial" />
+
+                    <div class="bn-auth ms-lg-3">
+                        <partial name="~/Views/Shared/_LoginPartial.cshtml" />
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <div class="bn-page">
+        <main role="main" class="bn-main container">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - BilkoNavigator_ - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <footer class="bn-footer-nature">
+        <div class="bn-footer-nature__wave" aria-hidden="true">
+            <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+                <path d="M0,64 C120,96 240,110 360,92 C480,74 600,22 720,34 C840,46 960,122 1080,104 C1200,86 1320,42 1440,54 L1440,120 L0,120 Z"></path>
+            </svg>
+        </div>
+
+        <div class="container bn-footer-nature__container">
+            <div class="bn-footer-nature__left">
+                <a class="bn-footer-nature__brand" asp-area="" asp-page="/Index" aria-label="Начало">
+                    <img src="~/images/logo.png"
+                         asp-append-version="true"
+                         alt="BilkoNavigator"
+                         class="bn-footer-nature__logo-img" />
+                </a>
+
+                <p class="bn-footer-nature__desc">
+                    Откривай, разпознавай и споделяй лечебни растения в България – чрез карта и общност.
+                </p>
+
+                <div class="bn-footer-nature__badges">
+                    <span class="bn-badge">Карта</span>
+                    <span class="bn-badge">Разпознаване</span>
+                    <span class="bn-badge">Каталог</span>
+                </div>
+            </div>
+
+            <div class="bn-footer-nature__cols">
+                <div class="bn-footer-col">
+                    <div class="bn-footer-col__title">Навигация</div>
+                    <a asp-area="" asp-page="/Index">Начало</a>
+                    <a asp-controller="Map" asp-action="Index">Карта на билките</a>
+                    <a asp-controller="Recognition" asp-action="Index">Разпознаване</a>
+                    <a asp-controller="Herbs" asp-action="Index">Каталог</a>
+                </div>
+
+                <div class="bn-footer-col">
+                    <div class="bn-footer-col__title">Проект</div>
+                    <a asp-area="" asp-page="/Privacy">Поверителност</a>
+                    <a asp-controller="Herbs" asp-action="Create">Добави билка</a>
+                    <a asp-controller="Herbs" asp-action="Index">Най-популярни билки</a>
+                </div>
+            </div>
+
+            <div class="bn-footer-nature__bottom">
+                <div class="bn-footer-nature__copy">
+                    &copy; @DateTime.Now.Year BilkoNavigator — направено за НОИТ.
+                </div>
+
+                <div class="bn-footer-nature__mini">
+                    <span aria-hidden="true"></span> Направено с грижа за природата
+                </div>
+            </div>
         </div>
     </footer>
+
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

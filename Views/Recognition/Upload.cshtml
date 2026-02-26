@@ -1,23 +1,80 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Разпознаване на билка";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    var isAuthenticated = User?.Identity?.IsAuthenticated == true;
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var loginUrl = Url.Page("/Account/Login", new { area = "Identity", returnUrl });
 }
-<h2>Сканирай билка</h2>
 
-<form asp-action="Upload" method="post" enctype="multipart/form-data">
-    <input type="file"
-           name="image"
-           accept="image/*"
-           capture="environment"
-           required />
+<section class="recognition-page">
+    <header class="recognition-header">
+        <h1>Сканирай билка</h1>
+        <p>Използвай камерата или качи снимка, за да разпознаеш билката.</p>
+    </header>
 
-    <br /><br />
+    <div class="recognition-tools">
+        <div class="recognition-actions">
+            <button id="recStart" class="bn-btn bn-btn--primary">Стартирай камера</button>
+            <button id="recCapture" class="bn-btn bn-btn--ghost">Снимай</button>
+            <button id="recStop" class="bn-btn bn-btn--ghost">Спри камера</button>
+        </div>
 
-    <button type="submit">Разпознай</button>
-</form>
+        <div class="recognition-upload">
+            <label class="bn-btn bn-btn--ghost" for="recFile">Качи снимка</label>
+            <input id="recFile" type="file" accept="image/*" capture="environment" hidden />
+        </div>
 
-@if (ViewBag.Error != null)
-{
-    <p style="color:red">@ViewBag.Error</p>
+        <div id="recStatus" class="recognition-status">Готово за разпознаване.</div>
+    </div>
+
+    <div class="recognition-grid">
+        <div class="recognition-preview">
+            <h3>Преглед</h3>
+            <div id="recPreview" class="recognition-preview__box">
+                <div id="recPlaceholder" class="recognition-placeholder">Камерата не е стартирана.</div>
+                <img id="recImagePreview" class="recognition-image" alt="Качена снимка" hidden />
+            </div>
+            <canvas id="recCanvas" class="recognition-canvas" width="224" height="224" hidden></canvas>
+        </div>
+
+        <div class="recognition-results">
+            <h3>Резултат</h3>
+            <div id="recResults" class="recognition-results__box">
+                <div id="recLoading" class="rec-loading" hidden>
+                    <span class="rec-spinner" aria-hidden="true"></span>
+                    <span>Разпознаване...</span>
+                </div>
+                <p class="rec-muted">Очакване на снимка...</p>
+            </div>
+        </div>
+    </div>
+
+    <form id="recognitionAntiforgeryForm" hidden>
+        @Html.AntiForgeryToken()
+    </form>
+
+    <div id="recMarkModal" class="rec-mark-modal" hidden>
+        <div class="rec-mark-modal__backdrop" data-close-modal="true"></div>
+        <div class="rec-mark-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="recMarkModalTitle">
+            <h3 id="recMarkModalTitle" class="rec-mark-modal__title">Разпозната билка</h3>
+            <p id="recMarkModalText" class="rec-mark-modal__text"></p>
+            <p id="recMarkModalHint" class="rec-mark-modal__hint" hidden></p>
+            <div class="rec-mark-modal__actions">
+                <button id="recMarkCancelBtn" type="button" class="bn-btn bn-btn--ghost">Не сега</button>
+                <a id="recMarkLoginBtn" class="bn-btn bn-btn--primary" href="@loginUrl" hidden>Вход</a>
+                <button id="recMarkConfirmBtn" type="button" class="bn-btn bn-btn--primary" hidden>Маркирай на картата</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://unpkg.com/@@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
+    <script>
+        window.recognitionConfig = {
+            isAuthenticated: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(isAuthenticated)),
+            loginUrl: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(loginUrl))
+        };
+    </script>
+    <script src="~/js/recognition.js" asp-append-version="true"></script>
 }

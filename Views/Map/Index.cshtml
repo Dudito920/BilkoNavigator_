@@ -1,0 +1,795 @@
+@{
+    ViewData["Title"] = "Карта на билките";
+    Layout = "~/Views/Shared/_MapLayout.cshtml";
+    var isAuthenticated = User?.Identity?.IsAuthenticated == true;
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+<section class="map-page">
+    <div class="map-page__shell">
+        <aside id="mapSidebar" class="map-sidebar" aria-label="Филтри">
+            <button id="mapSidebarResizer"
+                    type="button"
+                    class="map-sidebar-resizer"
+                    aria-label="Промени височината на панела"></button>
+
+            <div class="map-sidebar__body">
+                <div class="map-sidebar__brand">
+                    <a class="map-sidebar__logo" asp-area="" asp-page="/Index" aria-label="Начало">
+                        <img src="~/images/logo.png" asp-append-version="true" alt="BilkoNavigator" />
+                    </a>
+                    <a class="map-sidebar__home" asp-area="" asp-page="/Index">Начало</a>
+                </div>
+
+                <h1 class="map-sidebar__title">Карта на билките</h1>
+                <p class="map-sidebar__subtitle">
+                    Намери билка по име и покажи само нейните открити местоположения.
+                </p>
+
+                <div class="map-search">
+                    <label class="map-search__label" for="herbSearchInput">Търси билка</label>
+                    <div class="map-search__control">
+                        <div class="map-search__row">
+                            <input id="herbSearchInput"
+                                   class="map-search__input"
+                                   type="search"
+                                   autocomplete="off"
+                                   placeholder="Пример: Жълт кантарион" />
+                            <button id="searchApplyBtn" type="button" class="map-search__btn">Търсене</button>
+                        </div>
+                        <ul id="herbSearchResults" class="map-search__results" hidden></ul>
+                    </div>
+                </div>
+
+                <div class="map-filter">
+                    <p id="selectedHerbText" class="map-filter__text">Показва: всички билки</p>
+                    @if (isAuthenticated)
+                    {
+                        <label class="map-filter__toggle">
+                            <input id="onlyMineToggle" type="checkbox" />
+                            <span>Само моите билки</span>
+                        </label>
+                    }
+                    <button id="clearFilterBtn" type="button" class="bn-btn bn-btn--ghost map-filter__btn" hidden>
+                        Покажи всички
+                    </button>
+                </div>
+
+                <div class="map-marking">
+                    <h2 class="map-marking__title">Отбелязване на находка</h2>
+
+                    @if (isAuthenticated)
+                    {
+                        <button id="markModeBtn"
+                                type="button"
+                                class="bn-btn bn-btn--primary map-marking__btn"
+                                disabled>
+                            Маркирай на картата
+                        </button>
+                        <p id="markStatusText" class="map-marking__status">
+                            Избери билка, след това натисни бутона за маркиране.
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="map-marking__guest">
+                            За да отбележиш находка от картата, трябва да
+                            <a asp-area="Identity"
+                               asp-page="/Account/Login"
+                               asp-route-returnUrl="@returnUrl">влезеш в профила си</a>.
+                        </p>
+                    }
+                </div>
+
+                <div class="map-stats">
+                    <div class="map-stats__item">
+                        <span id="herbCount">0</span>
+                        <small>билки</small>
+                    </div>
+                    <div class="map-stats__item">
+                        <span id="pointCount">0</span>
+                        <small>точки</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="map-rail" aria-label="Бързи действия">
+            <button id="focusAllBtn" type="button" class="map-rail__btn" title="Фокус към всички точки">
+                ⊕
+            </button>
+            <button id="clearFilterQuickBtn" type="button" class="map-rail__btn" title="Покажи всички билки">
+                ✕
+            </button>
+        </div>
+
+        <button id="toggleSidebarBtn" type="button" class="map-sidebar-toggle" aria-label="Покажи или скрий панела">
+            ❮
+        </button>
+
+        <div id="herbMap" class="map-page__map" aria-label="Интерактивна карта"></div>
+
+        <form id="mapAntiforgeryForm" hidden>
+            @Html.AntiForgeryToken()
+        </form>
+    </div>
+</section>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script>
+        const DEFAULT_VIEW = { center: [42.7339, 25.4858], zoom: 7 };
+        const MAP_PADDING = [40, 40];
+        const isAuthenticated = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(isAuthenticated));
+
+        const map = L.map("herbMap", { zoomControl: true }).setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "Данни &copy; OpenStreetMap contributors"
+        }).addTo(map);
+
+        const markersLayer = L.markerClusterGroup({
+            showCoverageOnHover: false,
+            spiderfyOnMaxZoom: true,
+            zoomToBoundsOnClick: true,
+            maxClusterRadius: 45
+        }).addTo(map);
+
+        const dateFormatter = new Intl.DateTimeFormat("bg-BG", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+
+        const searchInput = document.getElementById("herbSearchInput");
+        const searchResults = document.getElementById("herbSearchResults");
+        const searchControl = document.querySelector(".map-search__control");
+        const selectedHerbText = document.getElementById("selectedHerbText");
+        const clearFilterBtn = document.getElementById("clearFilterBtn");
+        const clearFilterQuickBtn = document.getElementById("clearFilterQuickBtn");
+        const focusAllBtn = document.getElementById("focusAllBtn");
+        const searchApplyBtn = document.getElementById("searchApplyBtn");
+        const herbCount = document.getElementById("herbCount");
+        const pointCount = document.getElementById("pointCount");
+        const sidebar = document.getElementById("mapSidebar");
+        const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
+        const sidebarResizer = document.getElementById("mapSidebarResizer");
+        const markModeBtn = document.getElementById("markModeBtn");
+        const markStatusText = document.getElementById("markStatusText");
+        const onlyMineToggle = document.getElementById("onlyMineToggle");
+        const mobileQuery = window.matchMedia("(max-width: 767.98px)");
+        const antiForgeryToken = document.querySelector('#mapAntiforgeryForm input[name="__RequestVerificationToken"]')?.value ?? "";
+
+        const MOBILE_SIDEBAR_HEIGHT_KEY = "map_mobile_sidebar_height";
+        const MOBILE_MIN_SIDEBAR_HEIGHT = 180;
+        const MOBILE_MAX_SIDEBAR_GAP = 80;
+
+        let allPoints = [];
+        let uniqueHerbs = [];
+        let selectedHerbId = null;
+        let isResizingSidebar = false;
+        let resizeStartY = 0;
+        let resizeStartHeight = 0;
+        let isTypingInSidebar = false;
+        let isMarkingInProgress = false;
+
+        function normalizeText(value) {
+            return (value || "").trim().toLocaleLowerCase("bg-BG");
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
+        }
+
+        function setHerbList(herbs) {
+            uniqueHerbs = Array.from(herbs || [])
+                .map(herb => ({
+                    herbId: herb.herbId,
+                    herbName: herb.herbName,
+                    herbImagePath: herb.herbImagePath || null
+                }))
+                .sort((a, b) => a.herbName.localeCompare(b.herbName, "bg-BG"));
+
+            herbCount.textContent = uniqueHerbs.length.toString();
+        }
+
+        function createMarker(point) {
+            let marker;
+
+            if (point.herbImagePath) {
+                const herbIcon = L.divIcon({
+                    className: "map-herb-div-icon",
+                    html: `<span class="map-herb-thumb"><img src="${escapeHtml(point.herbImagePath)}" alt="" /></span>`,
+                    iconSize: [38, 38],
+                    iconAnchor: [19, 34],
+                    popupAnchor: [0, -30]
+                });
+
+                marker = L.marker([point.latitude, point.longitude], { icon: herbIcon });
+            } else {
+                marker = L.marker([point.latitude, point.longitude]);
+            }
+
+            const deleteActions = point.canDelete
+                ? `<button type="button" class="map-popup__btn map-popup__btn--danger" data-point-id="${point.id}">Изтрий точка</button>`
+                : "";
+
+            const popup = `
+                <div class="map-popup">
+                    <strong class="map-popup__title">${escapeHtml(point.herbName)}</strong>
+                    <div class="map-popup__date">Намерена на: ${dateFormatter.format(new Date(point.foundOn))}</div>
+                    <div class="map-popup__actions">
+                        <a class="map-popup__btn" href="/Herbs/Details/${point.herbId}">Към детайли</a>
+                        ${deleteActions}
+                    </div>
+                </div>
+            `;
+
+            marker.bindPopup(popup);
+            return marker;
+        }
+
+        function fitToVisiblePoints(points) {
+            if (!points.length) {
+                map.setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom);
+                return;
+            }
+
+            const bounds = L.latLngBounds(points.map(p => [p.latitude, p.longitude]));
+            map.fitBounds(bounds, { padding: MAP_PADDING, maxZoom: 14 });
+        }
+
+        function renderMarkers(points) {
+            markersLayer.clearLayers();
+            points.forEach(point => createMarker(point).addTo(markersLayer));
+            pointCount.textContent = points.length.toString();
+            fitToVisiblePoints(points);
+        }
+
+        function setMarkStatus(message, isError = false) {
+            if (!markStatusText) {
+                return;
+            }
+
+            markStatusText.textContent = message;
+            markStatusText.classList.toggle("map-marking__status--error", isError);
+        }
+
+        function updateMarkModeAvailability() {
+            if (!markModeBtn) {
+                return;
+            }
+
+            markModeBtn.disabled = isMarkingInProgress;
+
+            if (selectedHerbId === null) {
+                setMarkStatus("Избери билка, след това натисни бутона за маркиране.", false);
+                return;
+            }
+
+            if (!isMarkingInProgress) {
+                const selectedHerb = uniqueHerbs.find(h => h.herbId === selectedHerbId);
+                setMarkStatus(
+                    selectedHerb
+                        ? `Избрана билка: ${selectedHerb.herbName}. Натисни „Маркирай на картата“.`
+                        : "Натисни „Маркирай на картата“.",
+                    false
+                );
+            }
+        }
+
+        function applyFilter() {
+            const visiblePoints = selectedHerbId === null
+                ? allPoints
+                : allPoints.filter(point => point.herbId === selectedHerbId);
+
+            renderMarkers(visiblePoints);
+
+            if (selectedHerbId === null) {
+                selectedHerbText.textContent = "Показва: всички билки";
+                clearFilterBtn.hidden = true;
+            } else {
+                const herb = uniqueHerbs.find(h => h.herbId === selectedHerbId);
+                selectedHerbText.textContent = herb
+                    ? `Показва: ${herb.herbName}`
+                    : "Показва: избрана билка";
+                clearFilterBtn.hidden = false;
+            }
+
+            if (isAuthenticated && onlyMineToggle?.checked) {
+                selectedHerbText.textContent += " (само моите маркери)";
+            }
+
+            updateMarkModeAvailability();
+        }
+
+        function hideSuggestions() {
+            searchResults.hidden = true;
+            searchResults.innerHTML = "";
+            searchControl.classList.remove("is-open");
+        }
+
+        function selectHerb(herb) {
+            selectedHerbId = herb.herbId;
+            searchInput.value = herb.herbName;
+            hideSuggestions();
+            applyFilter();
+        }
+
+        function renderSuggestions(term) {
+            const normalizedTerm = normalizeText(term);
+
+            if (!normalizedTerm) {
+                hideSuggestions();
+                return;
+            }
+
+            const matches = uniqueHerbs
+                .filter(h => normalizeText(h.herbName).includes(normalizedTerm))
+                .slice(0, 10);
+
+            if (!matches.length) {
+                hideSuggestions();
+                return;
+            }
+
+            searchResults.innerHTML = "";
+            matches.forEach(match => {
+                const item = document.createElement("li");
+                item.className = "map-search__item";
+
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "map-search__option";
+
+                if (match.herbImagePath) {
+                    const thumb = document.createElement("span");
+                    thumb.className = "map-search__thumb";
+
+                    const img = document.createElement("img");
+                    img.src = match.herbImagePath;
+                    img.alt = "";
+
+                    thumb.appendChild(img);
+                    button.appendChild(thumb);
+                }
+
+                const text = document.createElement("span");
+                text.className = "map-search__name";
+                text.textContent = match.herbName;
+                button.appendChild(text);
+                button.addEventListener("click", () => selectHerb(match));
+
+                item.appendChild(button);
+                searchResults.appendChild(item);
+            });
+
+            searchResults.hidden = false;
+            searchControl.classList.add("is-open");
+        }
+
+        function applySearchFromInput() {
+            const normalizedTerm = normalizeText(searchInput.value);
+            if (!normalizedTerm) {
+                clearFilter();
+                return;
+            }
+
+            const exactMatch = uniqueHerbs.find(h => normalizeText(h.herbName) === normalizedTerm);
+            if (exactMatch) {
+                selectHerb(exactMatch);
+                return;
+            }
+
+            const partialMatch = uniqueHerbs.find(h => normalizeText(h.herbName).includes(normalizedTerm));
+            if (partialMatch) {
+                selectHerb(partialMatch);
+                return;
+            }
+
+            hideSuggestions();
+        }
+
+        function clearFilter() {
+            selectedHerbId = null;
+            searchInput.value = "";
+            hideSuggestions();
+            applyFilter();
+        }
+
+        async function markSelectedHerbAtCurrentLocation() {
+            if (!isAuthenticated || selectedHerbId === null) {
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                setMarkStatus("Геолокацията не се поддържа.", true);
+                return;
+            }
+
+            isMarkingInProgress = true;
+            updateMarkModeAvailability();
+            setMarkStatus("Определяне на текущата локация...", false);
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    try {
+                        const response = await fetch("/HerbFindings/Create", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "RequestVerificationToken": antiForgeryToken
+                            },
+                            body: JSON.stringify({
+                                herbId: selectedHerbId,
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            })
+                        });
+
+                        if (response.redirected && response.url.includes("/Identity/Account/Login")) {
+                            window.location.href = response.url;
+                            return;
+                        }
+
+                        if (response.status === 401 || response.status === 403) {
+                            const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                            window.location.href = `/Identity/Account/Login?ReturnUrl=${currentUrl}`;
+                            return;
+                        }
+
+                        if (!response.ok) {
+                            setMarkStatus("Грешка при отбелязване на находката.", true);
+                            return;
+                        }
+
+                        await loadMapData();
+                        setMarkStatus("Находката е отбелязана успешно.", false);
+                    } catch {
+                        setMarkStatus("Грешка при отбелязване на находката.", true);
+                    } finally {
+                        isMarkingInProgress = false;
+                        updateMarkModeAvailability();
+                    }
+                },
+                (error) => {
+                    if (error && error.code === 1) {
+                        setMarkStatus("Разреши достъп до местоположение, за да отбележиш находка.", true);
+                    } else if (error && error.code === 3) {
+                        setMarkStatus("Изчакването за местоположение изтече. Опитай отново.", true);
+                    } else {
+                        setMarkStatus("Не може да се вземе местоположение.", true);
+                    }
+
+                    isMarkingInProgress = false;
+                    updateMarkModeAvailability();
+                }
+            );
+        }
+
+        async function loadMapData() {
+            try {
+                const pointsUrl = (isAuthenticated && onlyMineToggle?.checked)
+                    ? "/map/points?onlyMine=true"
+                    : "/map/points";
+
+                const [pointsResponse, herbsResponse] = await Promise.all([
+                    fetch(pointsUrl),
+                    fetch("/map/herbs")
+                ]);
+
+                if (!pointsResponse.ok || !herbsResponse.ok) {
+                    throw new Error("Неуспешно зареждане на данни.");
+                }
+
+                const points = await pointsResponse.json();
+                const herbs = await herbsResponse.json();
+                allPoints = points || [];
+                setHerbList(herbs);
+
+                if (selectedHerbId !== null && !uniqueHerbs.some(herb => herb.herbId === selectedHerbId)) {
+                    selectedHerbId = null;
+                    searchInput.value = "";
+                    hideSuggestions();
+                }
+
+                applyFilter();
+            } catch {
+                selectedHerbText.textContent = "Грешка при зареждане на картата.";
+                herbCount.textContent = "0";
+                pointCount.textContent = "0";
+                updateMarkModeAvailability();
+            }
+        }
+
+        async function deletePoint(pointId) {
+            const confirmed = window.confirm("Сигурни ли сте, че искате да изтриете тази точка?");
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/map/points/${pointId}/delete`, {
+                    method: "POST",
+                    headers: {
+                        "RequestVerificationToken": antiForgeryToken
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Неуспешно изтриване на точка.");
+                }
+
+                await loadMapData();
+            } catch {
+                alert("Грешка при изтриване на точката.");
+            }
+        }
+
+        searchInput.addEventListener("input", (event) => {
+            const value = event.target.value;
+            if (!normalizeText(value)) {
+                clearFilter();
+                return;
+            }
+
+            renderSuggestions(value);
+        });
+
+        searchInput.addEventListener("search", (event) => {
+            if (!normalizeText(event.target.value)) {
+                clearFilter();
+            }
+        });
+
+        searchInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                applySearchFromInput();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const clickedInsideSearch = event.target.closest(".map-search");
+            if (!clickedInsideSearch) {
+                hideSuggestions();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const deleteButton = event.target.closest(".map-popup__btn--danger[data-point-id]");
+            if (!deleteButton) {
+                return;
+            }
+
+            event.preventDefault();
+            const pointId = Number(deleteButton.dataset.pointId);
+            if (!Number.isFinite(pointId)) {
+                return;
+            }
+
+            deletePoint(pointId);
+        });
+
+        markModeBtn?.addEventListener("click", () => {
+            if (!isAuthenticated) {
+                return;
+            }
+
+            if (selectedHerbId === null) {
+                setMarkStatus("Първо избери билка от търсенето.", true);
+                return;
+            }
+
+            if (isMarkingInProgress) {
+                return;
+            }
+
+            markSelectedHerbAtCurrentLocation();
+        });
+
+        onlyMineToggle?.addEventListener("change", () => {
+            loadMapData();
+        });
+
+        clearFilterBtn.addEventListener("click", clearFilter);
+        clearFilterQuickBtn.addEventListener("click", clearFilter);
+        searchApplyBtn.addEventListener("click", applySearchFromInput);
+
+        focusAllBtn.addEventListener("click", () => {
+            fitToVisiblePoints(allPoints);
+        });
+
+        toggleSidebarBtn.addEventListener("click", () => {
+            sidebar.classList.toggle("is-collapsed");
+            const collapsed = sidebar.classList.contains("is-collapsed");
+            toggleSidebarBtn.classList.toggle("is-collapsed", collapsed);
+            toggleSidebarBtn.textContent = collapsed ? "❯" : "❮";
+
+            setTimeout(() => map.invalidateSize(), 280);
+        });
+
+        function getVisibleViewportHeight() {
+            return window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        }
+
+        function getKeyboardOffset() {
+            if (!window.visualViewport) {
+                return 0;
+            }
+
+            const keyboardOffset = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
+            return Math.max(0, keyboardOffset);
+        }
+
+        function getMobileSidebarMaxHeight() {
+            const visibleHeight = getVisibleViewportHeight();
+            return Math.max(MOBILE_MIN_SIDEBAR_HEIGHT, Math.floor(visibleHeight - MOBILE_MAX_SIDEBAR_GAP));
+        }
+
+        function clampMobileSidebarHeight(height) {
+            return Math.max(MOBILE_MIN_SIDEBAR_HEIGHT, Math.min(getMobileSidebarMaxHeight(), height));
+        }
+
+        function applyMobileSidebarHeight(height, persist = false) {
+            const clampedHeight = clampMobileSidebarHeight(height);
+            sidebar.style.height = `${clampedHeight}px`;
+
+            if (persist) {
+                try {
+                    localStorage.setItem(MOBILE_SIDEBAR_HEIGHT_KEY, String(clampedHeight));
+                } catch {
+                    // Ignore storage failures (private mode / restricted storage).
+                }
+            }
+        }
+
+        function applyKeyboardOffset() {
+            if (!mobileQuery.matches) {
+                document.documentElement.style.setProperty("--map-mobile-keyboard-offset", "0px");
+                return;
+            }
+
+            const offset = isTypingInSidebar ? getKeyboardOffset() : 0;
+            document.documentElement.style.setProperty("--map-mobile-keyboard-offset", `${offset}px`);
+
+            if (sidebar.style.height) {
+                applyMobileSidebarHeight(parseInt(sidebar.style.height, 10) || MOBILE_MIN_SIDEBAR_HEIGHT);
+            }
+        }
+
+        function initializeMobileSidebarHeight() {
+            if (!mobileQuery.matches) {
+                sidebar.style.removeProperty("height");
+                document.documentElement.style.setProperty("--map-mobile-keyboard-offset", "0px");
+                return;
+            }
+
+            let savedHeightRaw = null;
+            try {
+                savedHeightRaw = localStorage.getItem(MOBILE_SIDEBAR_HEIGHT_KEY);
+            } catch {
+                savedHeightRaw = null;
+            }
+            const savedHeight = savedHeightRaw ? parseInt(savedHeightRaw, 10) : NaN;
+            const initialHeight = Number.isFinite(savedHeight)
+                ? savedHeight
+                : Math.round(Math.min(getVisibleViewportHeight() * 0.48, 380));
+
+            applyMobileSidebarHeight(initialHeight, false);
+            applyKeyboardOffset();
+        }
+
+        function startSidebarResize(event) {
+            if (!mobileQuery.matches) {
+                return;
+            }
+
+            isResizingSidebar = true;
+            resizeStartY = event.clientY;
+            resizeStartHeight = sidebar.getBoundingClientRect().height;
+            document.body.classList.add("map-sidebar-is-resizing");
+            sidebarResizer.setPointerCapture?.(event.pointerId);
+
+            window.addEventListener("pointermove", onSidebarResizeMove);
+            window.addEventListener("pointerup", stopSidebarResize);
+            window.addEventListener("pointercancel", stopSidebarResize);
+        }
+
+        function onSidebarResizeMove(event) {
+            if (!isResizingSidebar) {
+                return;
+            }
+
+            const deltaY = resizeStartY - event.clientY;
+            const newHeight = resizeStartHeight + deltaY;
+            applyMobileSidebarHeight(newHeight, false);
+        }
+
+        function stopSidebarResize() {
+            if (!isResizingSidebar) {
+                return;
+            }
+
+            isResizingSidebar = false;
+            document.body.classList.remove("map-sidebar-is-resizing");
+            window.removeEventListener("pointermove", onSidebarResizeMove);
+            window.removeEventListener("pointerup", stopSidebarResize);
+            window.removeEventListener("pointercancel", stopSidebarResize);
+
+            const finalHeight = sidebar.getBoundingClientRect().height;
+            applyMobileSidebarHeight(finalHeight, true);
+        }
+
+        sidebarResizer.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            startSidebarResize(event);
+        });
+
+        sidebar.addEventListener("focusin", (event) => {
+            if (!mobileQuery.matches) {
+                return;
+            }
+
+            const target = event.target;
+            const isInputTarget = target instanceof HTMLInputElement
+                || target instanceof HTMLTextAreaElement
+                || target instanceof HTMLSelectElement;
+
+            if (!isInputTarget) {
+                return;
+            }
+
+            isTypingInSidebar = true;
+            applyKeyboardOffset();
+            setTimeout(applyKeyboardOffset, 80);
+            setTimeout(applyKeyboardOffset, 180);
+        });
+
+        sidebar.addEventListener("focusout", () => {
+            if (!mobileQuery.matches) {
+                return;
+            }
+
+            const activeElement = document.activeElement;
+            const stillTyping = activeElement instanceof HTMLElement && sidebar.contains(activeElement)
+                && (activeElement instanceof HTMLInputElement
+                    || activeElement instanceof HTMLTextAreaElement
+                    || activeElement instanceof HTMLSelectElement);
+
+            if (stillTyping) {
+                return;
+            }
+
+            isTypingInSidebar = false;
+            setTimeout(applyKeyboardOffset, 120);
+        });
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", applyKeyboardOffset);
+            window.visualViewport.addEventListener("scroll", applyKeyboardOffset);
+        }
+
+        window.addEventListener("resize", initializeMobileSidebarHeight);
+        if (typeof mobileQuery.addEventListener === "function") {
+            mobileQuery.addEventListener("change", initializeMobileSidebarHeight);
+        } else if (typeof mobileQuery.addListener === "function") {
+            mobileQuery.addListener(initializeMobileSidebarHeight);
+        }
+
+        initializeMobileSidebarHeight();
+        loadMapData();
+    </script>
+}

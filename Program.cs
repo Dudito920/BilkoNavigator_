@@ -6,13 +6,13 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-//Добавяме услуги към контейнера.
+//Р”РѕР±Р°РІСЏРјРµ СѓСЃР»СѓРіРё РєСЉРј РєРѕРЅС‚РµР№РЅРµСЂР°.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-Console.WriteLine(  "Hello");
+
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 //builder.Services.AddDbContext<AppDbContext>(options =>
@@ -37,6 +37,12 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
 builder.Services.AddRazorPages();
 
 
@@ -69,6 +75,74 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
     var env = services.GetRequiredService<IWebHostEnvironment>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    const string adminRole = "Admin";
+    const string userRole = "User";
+
+    if (!await roleManager.RoleExistsAsync(adminRole))
+    {
+        await roleManager.CreateAsync(new IdentityRole(adminRole));
+    }
+
+    if (!await roleManager.RoleExistsAsync(userRole))
+    {
+        await roleManager.CreateAsync(new IdentityRole(userRole));
+    }
+
+    var seedAdminEmail = app.Configuration["Admin:SeedEmail"];
+    var seedAdminPassword = app.Configuration["Admin:SeedPassword"];
+
+    if (string.IsNullOrWhiteSpace(seedAdminEmail))
+        seedAdminEmail = "dudito920@gmail.com";
+
+    if (string.IsNullOrWhiteSpace(seedAdminPassword))
+        seedAdminPassword = "Noit2026!";
+
+    var seededAdmin = await userManager.FindByEmailAsync(seedAdminEmail);
+    if (seededAdmin == null)
+    {
+        seededAdmin = new User
+        {
+            UserName = seedAdminEmail,
+            Email = seedAdminEmail,
+            EmailConfirmed = true,
+            UserStatus = "Active"
+        };
+
+        var createAdminResult = await userManager.CreateAsync(seededAdmin, seedAdminPassword);
+        if (!createAdminResult.Succeeded)
+        {
+            var reason = string.Join("; ", createAdminResult.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Could not seed admin user: {reason}");
+        }
+    }
+
+    if (!await userManager.IsInRoleAsync(seededAdmin, adminRole))
+    {
+        await userManager.AddToRoleAsync(seededAdmin, adminRole);
+    }
+
+    var configuredAdminEmail = app.Configuration["Admin:Email"];
+    if (!string.IsNullOrWhiteSpace(configuredAdminEmail))
+    {
+        var adminUser = await userManager.FindByEmailAsync(configuredAdminEmail);
+        if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, adminRole))
+        {
+            await userManager.AddToRoleAsync(adminUser, adminRole);
+        }
+    }
+
+    foreach (var user in userManager.Users.ToList())
+    {
+        if (await userManager.IsInRoleAsync(user, adminRole))
+            continue;
+
+        if (!await userManager.IsInRoleAsync(user, userRole))
+        {
+            await userManager.AddToRoleAsync(user, userRole);
+        }
+    }
 
     await HerbSeeder.SeedAsync(context, env);
 }
@@ -93,7 +167,7 @@ app.MapControllerRoute(
     name: "herbs",
     pattern: "Herbs/{action=Index}/{id?}");
 
-//следващото е излишно
+//СЃР»РµРґРІР°С‰РѕС‚Рѕ Рµ РёР·Р»РёС€РЅРѕ
 app.MapRazorPages();
 
 app.Run();

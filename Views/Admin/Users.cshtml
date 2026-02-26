@@ -1,0 +1,82 @@
+@using System.Globalization
+@model BilkoNavigator_.ViewModels.AdminUsersPageViewModel
+
+@{
+    ViewData["Title"] = "Администрация";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    var bg = CultureInfo.GetCultureInfo("bg-BG");
+}
+
+<section class="container py-4">
+    <h1 class="mb-3">Администрация</h1>
+    <p class="text-muted">Управление на потребители и преглед на техните намерени билки.</p>
+
+    @if (TempData["AdminUsersSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success" role="alert">@successMessage</div>
+    }
+
+    @if (TempData["AdminUsersError"] is string errorMessage)
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+
+    @if (Model.Users.Count == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            Няма налични потребители за управление.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Имейл</th>
+                        <th>Потребителско име</th>
+                        <th>Намерени билки</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        <tr>
+                            <td>@user.Email</td>
+                            <td>@user.UserName</td>
+                            <td>
+                                @if (user.HerbSummaries.Count == 0)
+                                {
+                                    <span class="text-muted">Няма намерени билки</span>
+                                }
+                                else
+                                {
+                                    <div class="mb-1"><strong>Общо: @user.TotalFindings</strong></div>
+                                    <ul class="mb-0 ps-3">
+                                        @foreach (var herb in user.HerbSummaries)
+                                        {
+                                            <li>
+                                                @herb.HerbName - @herb.Count пъти (последно: @herb.LastFoundOn.ToString("dd.MM.yyyy HH:mm", bg))
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </td>
+                            <td>
+                                <form asp-controller="Admin"
+                                      asp-action="DeleteUser"
+                                      method="post"
+                                      onsubmit="return confirm('Сигурни ли сте, че искате да изтриете този профил?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.UserId" />
+                                    <button type="submit" class="btn btn-sm btn-danger">Изтрий профил</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

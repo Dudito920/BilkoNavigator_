@@ -1,117 +1,161 @@
 ﻿@model IEnumerable<BilkoNavigator_.Models.Herb>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Каталог билки";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Index</h1>
+<section class="herbs-page">
+    <header class="herbs-header">
+        <div class="herbs-header__left">
+            <h1 class="herbs-title">Каталог билки</h1>
+            <p class="herbs-subtitle">
+                Разгледай лечебни растения, техните характеристики и полезни приложения.
+            </p>
+        </div>
 
-<p>
-    <a href="/Herbs/Create" class="btn btn-primary">Create New</a>
-   
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.PopularName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LatinName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DialectNames)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Aroma)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Taste)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Habitat)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Season)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsPoisonous)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsProtected)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UsedPart)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Benefits)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.PopularName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LatinName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DialectNames)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Aroma)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Taste)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Habitat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Season)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsPoisonous)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsProtected)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UsedPart)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Benefits)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
+        <div class="herbs-header__right">
+            <a href="/Herbs/Create" class="bn-btn bn-btn--primary">Добави билка</a>
+        </div>
+    </header>
 
-              <td> @if (item.Image != null)
-                {
-                    <img src="@item.Image.ImagePath"
-                         style="max-width:120px; max-height:120px; object-fit:cover; border-radius:6px;" />
-                }
-                else
-                {
-                    <span class="text-muted">Няма снимка</span>
-                }
-                </td>
+    <div class="herbs-toolbar">
+        <form class="herbs-search" asp-controller="Herbs" asp-action="Search" method="get">
+            <label class="sr-only" for="herbSearch">Търсене</label>
+            <input id="herbSearch" name="query" class="bn-input" type="search"
+                   value="@(ViewData["SearchQuery"] as string ?? "")"
+                   placeholder="Търси по име, латинско име, местообитание..." />
+            <button type="submit" class="sr-only">Търсене</button>
+        </form>
 
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+        <div class="herbs-filters">
+            <select class="bn-select" aria-label="Сезон">
+                <option value="">Сезон: всички</option>
+                <option>Пролет</option>
+                <option>Лято</option>
+                <option>Есен</option>
+                <option>Зима</option>
+            </select>
 
+            <select class="bn-select" aria-label="Статус">
+                <option value="">Статус: всички</option>
+                <option>Защитени</option>
+                <option>Отровни</option>
+                <option>Без ограничения</option>
+            </select>
 
+            <a class="bn-btn bn-btn--ghost" asp-controller="Map" asp-action="Index">Виж на карта</a>
+        </div>
+    </div>
+
+    @{
+        var list = Model?.ToList() ?? new List<BilkoNavigator_.Models.Herb>();
+    }
+
+    @if (!list.Any())
+    {
+        <div class="bn-empty">
+            <div class="bn-empty__box">
+                <h2 class="bn-empty__title">Няма добавени билки</h2>
+                <p class="bn-empty__text">
+                    Започни каталога, като добавиш първата билка.
+                </p>
+                <a href="/Herbs/Create" class="bn-btn bn-btn--primary">Добави билка</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="herbs-grid">
+            @foreach (var item in list)
+            {
+                <article class="herb-card">
+                    <a class="herb-card__media" asp-action="Details" asp-route-id="@item.Id" aria-label="Детайли">
+                        @if (item.Image != null)
+                        {
+                            <img src="@item.Image.ImagePath" alt="@item.PopularName" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="herb-card__placeholder" aria-hidden="true"></div>
+                        }
+
+                        <div class="herb-card__badges">
+                            @if (item.IsProtected)
+                            {
+                                <span class="bn-badge bn-badge--info">Защитена</span>
+                            }
+                            @if (item.IsPoisonous)
+                            {
+                                <span class="bn-badge bn-badge--danger">Отровна</span>
+                            }
+                        </div>
+                    </a>
+
+                    <div class="herb-card__body">
+                        <div class="herb-card__top">
+                            <h3 class="herb-card__title">
+                                <a asp-action="Details" asp-route-id="@item.Id">@item.PopularName</a>
+                            </h3>
+
+                            @if (!string.IsNullOrWhiteSpace(item.LatinName))
+                            {
+                                <div class="herb-card__latin">@item.LatinName</div>
+                            }
+                        </div>
+
+                        <div class="herb-meta">
+                            @if (!string.IsNullOrWhiteSpace(item.Season))
+                            {
+                                <div class="herb-meta__row">
+                                    <span class="herb-meta__label">Сезон</span>
+                                    <span class="herb-meta__value">@item.Season</span>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(item.Habitat))
+                            {
+                                <div class="herb-meta__row">
+                                    <span class="herb-meta__label">Местообитание</span>
+                                    <span class="herb-meta__value">@item.Habitat</span>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(item.UsedPart))
+                            {
+                                <div class="herb-meta__row">
+                                    <span class="herb-meta__label">Използвана част</span>
+                                    <span class="herb-meta__value">@item.UsedPart</span>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(item.Benefits))
+                        {
+                            <p class="herb-card__desc">@item.Benefits</p>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            <p class="herb-card__desc">@item.Description</p>
+                        }
+                        else
+                        {
+                            <p class="herb-card__desc herb-card__desc--muted">
+                                Няма добавено описание.
+                            </p>
+                        }
+
+                        <div class="herb-card__actions">
+                            <a class="bn-btn bn-btn--ghost" asp-action="Details" asp-route-id="@item.Id">Детайли</a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="bn-btn bn-btn--ghost" asp-action="Edit" asp-route-id="@item.Id">Редакция</a>
+                                <a class="bn-btn bn-btn--danger" asp-action="Delete" asp-route-id="@item.Id">Изтриване</a>
+                            }
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>

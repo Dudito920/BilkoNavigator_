@@ -13,11 +13,11 @@ namespace BilkoNavigator_.Data
         {
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Herb> Herbs { get; set; }
-        public DbSet<Location> Locations { get; set; }
-        public DbSet<HerbFinding> HerbFindings { get; set; }
-        public DbSet<HerbImage> HerbImages { get; set; }
+        public DbSet<User> Users => Set<User>();
+        public DbSet<Herb> Herbs => Set<Herb>();
+        public DbSet<Location> Locations => Set<Location>();
+        public DbSet<HerbFinding> HerbFindings => Set<HerbFinding>();
+        public DbSet<HerbImage> HerbImages => Set<HerbImage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,6 +26,12 @@ namespace BilkoNavigator_.Data
             modelBuilder.Entity<Herb>()
                 .HasIndex(h => h.LatinName)
                 .IsUnique();
+
+            modelBuilder.Entity<Herb>()
+                .HasOne(h => h.Image)
+                .WithOne(i => i.Herb)
+                .HasForeignKey<HerbImage>(i => i.HerbId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

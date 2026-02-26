@@ -1,154 +1,257 @@
 ﻿@model BilkoNavigator_.Models.Herb
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model?.PopularName ?? "Детайли";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
 }
 
-<h1>Details</h1>
+<section class="herb-details">
+    <nav class="herb-breadcrumbs" aria-label="Навигация">
+        <a asp-action="Index">Каталог</a>
+        <span class="herb-breadcrumbs__sep">/</span>
+        <span class="herb-breadcrumbs__current">@Model.PopularName</span>
+    </nav>
 
-<div>
-    <h4>Herb</h4>
-  
+    <div class="herb-hero">
+        <!-- Снимка -->
+        <div class="herb-media">
 
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PopularName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PopularName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LatinName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LatinName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DialectNames)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DialectNames)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Aroma)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Aroma)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Taste)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Taste)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Habitat)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Habitat)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Season)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Season)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsPoisonous)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsPoisonous)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsProtected)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsProtected)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UsedPart)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UsedPart)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Benefits)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Benefits)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class="col-sm-2">
-            Image
-        </dt>
-        <dd class="col-sm-10">
+
             @if (Model.Image != null)
             {
-                <img src="@Model.Image.ImagePath"
-                     style="max-width:120px; max-height:120px; object-fit:cover; border-radius:6px;" />
+                <img class="herb-media__img" src="@Model.Image.ImagePath" alt="@Model.PopularName" />
             }
             else
             {
-                <span class="text-muted">Няма снимка</span>
+                <div class="herb-media__placeholder" aria-hidden="true"></div>
             }
-        </dd>
-    </dl>
-</div>
-@if (!Model.IsProtected)
-{
-    @* <form method="get" asp-controller="HerbFindings" asp-action="Create" asp-route-herbId="@Model.Id"> *@
-        <button class="btn btn-success" onclick="markFinding(@Model.Id)">
-            📍 Намерих тази билка
-        </button>
 
-        <h3>Карта на откритията</h3>
-        <div id="map" style="height: 400px;"></div>
-   @*  </form> *@
-}
-else
-{
-    <div class="alert alert-warning">Тази билка е защитена и не могат да се добавят места.</div>
-}
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+            <div class="herb-media__badges">
+                @if (Model.IsProtected)
+                {
+                    <span class="bn-badge bn-badge--info">Защитена</span>
+                }
+                @if (Model.IsPoisonous)
+                {
+                    <span class="bn-badge bn-badge--danger">Отровна</span>
+                }
+            </div>
+        </div>
+
+        <!-- Обобщение -->
+        <aside class="herb-summary">
+            <header class="herb-summary__header">
+                <h1 class="herb-summary__title">@Model.PopularName</h1>
+
+                @if (!string.IsNullOrWhiteSpace(Model.LatinName))
+                {
+                    <div class="herb-summary__latin">@Model.LatinName</div>
+                }
+            </header>
+
+            <div class="herb-chips">
+                @if (!string.IsNullOrWhiteSpace(Model.Season))
+                {
+                    <span class="herb-chip">@Model.Season</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Aroma))
+                {
+                    <span class="herb-chip">@Model.Aroma</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Taste))
+                {
+                    <span class="herb-chip">@Model.Taste</span>
+                }
+            </div>
+
+            <div class="herb-facts" role="list">
+                @if (!string.IsNullOrWhiteSpace(Model.DialectNames))
+                {
+                    <div class="herb-facts__row" role="listitem">
+                        <span class="herb-facts__label">Диалектни имена</span>
+                        <span class="herb-facts__value">@Model.DialectNames</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Habitat))
+                {
+                    <div class="herb-facts__row" role="listitem">
+                        <span class="herb-facts__label">Местообитание</span>
+                        <span class="herb-facts__value">@Model.Habitat</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.UsedPart))
+                {
+                    <div class="herb-facts__row" role="listitem">
+                        <span class="herb-facts__label">Използвана част</span>
+                        <span class="herb-facts__value">@Model.UsedPart</span>
+                    </div>
+                }
+            </div>
+
+            <div class="herb-actions">
+                <a class="bn-btn bn-btn--ghost" asp-action="Index">Назад</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="bn-btn bn-btn--primary" asp-action="Edit" asp-route-id="@Model.Id">Редакция</a>
+                    <a class="bn-btn bn-btn--danger" asp-action="Delete" asp-route-id="@Model.Id">Изтриване</a>
+                }
+            </div>
+        </aside>
+    </div>
+
+    <div class="herb-content">
+        <div class="herb-panel">
+            <h2 class="herb-panel__title">Описание</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="herb-text">@Model.Description</p>
+            }
+            else
+            {
+                <p class="herb-text herb-muted">Няма добавено описание.</p>
+            }
+        </div>
+
+        <aside class="herb-side">
+            <div class="herb-panel">
+                <h2 class="herb-panel__title">Ползи</h2>
+                @if (!string.IsNullOrWhiteSpace(Model.Benefits))
+                {
+                    <p class="herb-text">@Model.Benefits</p>
+                }
+                else
+                {
+                    <p class="herb-text herb-muted">Няма добавена информация за ползи.</p>
+                }
+            </div>
+
+            <div class="herb-panel">
+                <h2 class="herb-panel__title">Характеристики</h2>
+
+                <div class="herb-facts herb-facts--compact">
+                    @if (!string.IsNullOrWhiteSpace(Model.Season))
+                    {
+                        <div class="herb-facts__row">
+                            <span class="herb-facts__label">Сезон</span>
+                            <span class="herb-facts__value">@Model.Season</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Aroma))
+                    {
+                        <div class="herb-facts__row">
+                            <span class="herb-facts__label">Аромат</span>
+                            <span class="herb-facts__value">@Model.Aroma</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Taste))
+                    {
+                        <div class="herb-facts__row">
+                            <span class="herb-facts__label">Вкус</span>
+                            <span class="herb-facts__value">@Model.Taste</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <section class="herb-map-section">
+        <header class="herb-map-header">
+            <div>
+                <h2 class="herb-map-title">Карта на откритията</h2>
+                <p class="herb-map-subtitle">
+                    Преглед на места, където е отбелязано, че расте тази билка.
+                </p>
+            </div>
+
+            @if (!Model.IsProtected)
+            {
+                @if (User?.Identity?.IsAuthenticated == true)
+                {
+                    <button class="bn-btn bn-btn--primary" type="button" onclick="markFinding(@Model.Id)">
+                        Намерих тази билка
+                    </button>
+                }
+                else
+                {
+                    <div class="herb-find-cta">
+                        <button class="bn-btn bn-btn--primary herb-find-btn--disabled"
+                                type="button"
+                                disabled
+                                aria-disabled="true">
+                            Намерих тази билка
+                        </button>
+                        <p class="herb-find-note">
+                            За да отбележиш билката, трябва да
+                            <a asp-area="Identity"
+                               asp-page="/Account/Login"
+                               asp-route-returnUrl="@returnUrl">влезеш в профила си</a>.
+                        </p>
+                    </div>
+                }
+            }
+        </header>
+
+        @if (Model.IsProtected)
+        {
+            <div class="bn-alert bn-alert--warning">
+                Тази билка е защитена и не могат да се добавят места.
+            </div>
+        }
+
+        <div class="herb-mapbox">
+            <div id="map" class="herb-mapbox__map" aria-label="Карта"></div>
+        </div>
+    </section>
+
+    <form>
+        @Html.AntiForgeryToken()
+    </form>
+</section>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-
-<form>
-    @Html.AntiForgeryToken()
-</form>
 @section Scripts {
     <script>
-        // 1) Създаваме карта
+        // Създаване на карта
         const map = L.map('map').setView([42.7339, 25.4858], 7);
+        const herbImagePath = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Image?.ImagePath));
+        const herbIcon = herbImagePath
+            ? L.icon({
+                iconUrl: herbImagePath,
+                className: "herb-details-marker-icon",
+                iconSize: [38, 38],
+                iconAnchor: [19, 34],
+                popupAnchor: [0, -30]
+            })
+            : null;
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // 2) Зареждаме вече запазени точки
+        // Зареждане на записаните точки
         fetch(`/HerbFindings/GetFindings?herbId=@Model.Id`)
             .then(r => r.json())
             .then(points => {
                 points.forEach(p => {
-                    L.marker([p.latitude, p.longitude])
+                    const marker = herbIcon
+                        ? L.marker([p.latitude, p.longitude], { icon: herbIcon })
+                        : L.marker([p.latitude, p.longitude]);
+
+                    marker
                         .addTo(map)
-                        .bindPopup("Намерено на: " + new Date(p.foundOn).toLocaleString());
+                        .bindPopup("Намерено на: " + new Date(p.foundOn).toLocaleString('bg-BG'));
                 });
             });
 
-        // 3) Функция за записване на нова точка
+        // Запазване на ново откритие
         function markFinding(herbId) {
             if (!navigator.geolocation) {
                 alert("Геолокацията не се поддържа");
@@ -168,24 +271,31 @@ else
                         headers: {
                             'Content-Type': 'application/json',
                             'RequestVerificationToken':
-                                document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                            document.querySelector('input[name="__RequestVerificationToken"]')?.value
                         },
                         body: JSON.stringify(data)
                     })
-                    .then(r => {
-                        if (r.ok) {
-                            alert("Записано!");
-                            location.reload(); // обновява картата
-                        } else {
-                            alert("Грешка при запис");
-                        }
-                    });
+                        .then(r => {
+                            if (r.redirected && r.url.includes('/Identity/Account/Login')) {
+                                window.location.href = r.url;
+                                return;
+                            }
+
+                            if (r.status === 401 || r.status === 403) {
+                                const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                                window.location.href = `/Identity/Account/Login?ReturnUrl=${currentUrl}`;
+                                return;
+                            }
+
+                            if (r.ok) {
+                                location.reload();
+                            } else {
+                                alert("Грешка при запис");
+                            }
+                        });
                 },
-                error => {
-                    alert("Не може да се вземе местоположение");
-                }
+                () => alert("Не може да се вземе местоположение")
             );
         }
     </script>
 }
-

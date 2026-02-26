@@ -1,150 +1,153 @@
 ﻿@model BilkoNavigator_.Models.Herb
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Добавяне на билка";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Create</h1>
+<section class="herb-form-page">
+    <nav class="herb-breadcrumbs" aria-label="Навигация">
+        <a asp-action="Index">Каталог</a>
+        <span class="herb-breadcrumbs__sep">/</span>
+        <span class="herb-breadcrumbs__current">Добавяне</span>
+    </nav>
 
-<h4>Herb</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-controller="Herbs"
-              asp-action="Create"
-              method="post"
-              enctype="multipart/form-data">
+    <header class="herb-form-header">
+        <div>
+            <h1 class="herb-form-title">Добавяне на билка</h1>
+            <p class="herb-form-subtitle">Попълни основните характеристики и добави снимка.</p>
+        </div>
 
-            @Html.AntiForgeryToken()
+        <div class="herb-form-header__actions">
+            <a class="bn-btn bn-btn--ghost" asp-action="Index">Каталог</a>
+        </div>
+    </header>
 
-            <div asp-validation-summary="All" class="text-danger"></div>
+    <form class="herb-form"
+          asp-controller="Herbs"
+          asp-action="Create"
+          method="post"
+          enctype="multipart/form-data">
 
-            <div class="form-group">
-                <label asp-for="PopularName" class="control-label">Популярно име</label>
+        @Html.AntiForgeryToken()
 
-                <!-- 🔴 КЛЮЧОВАТА КОРЕКЦИЯ -->
-                <input type="text"
-                       name="PopularName"
-                       value="@Model?.PopularName"
-                       class="form-control" />
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="All" class="bn-validation"></div>
+        }
+        
+        <div class="herb-form-grid">
+            <div class="herb-form-card">
+                <h2 class="herb-form-card__title">Основна информация</h2>
 
-                <span asp-validation-for="PopularName" class="text-danger"></span>
-            </div>
+                <div class="bn-field">
+                    <label class="bn-label" for="PopularName">Популярно име</label>
+                    <input id="PopularName" name="PopularName" type="text" value="@Model?.PopularName" class="bn-input" />
+                </div>
 
-            <div class="form-group">
-                <label asp-for="LatinName" class="control-label">Латинско име</label>
-                <input asp-for="LatinName" class="form-control" />
-            </div>
+                <div class="bn-field">
+                    <label class="bn-label" for="LatinName">Латинско име</label>
+                    <input id="LatinName" name="LatinName" type="text" value="@Model?.LatinName" class="bn-input" />
+                </div>
 
-            <div class="form-group">
-                <label asp-for="DialectNames" class="control-label">Диалектно име</label>
-                <input asp-for="DialectNames" class="form-control" />
-            </div>
+                <div class="bn-field">
+                    <label class="bn-label" for="DialectNames">Диалектни имена</label>
+                    <input id="DialectNames" name="DialectNames" type="text" value="@Model?.DialectNames" class="bn-input" />
+                </div>
 
-            <div class="form-group">
-                <label asp-for="Aroma" class="control-label">Аромат</label>
-                <input asp-for="Aroma" class="form-control" />
-            </div>
+                <div class="bn-field">
+                    <label class="bn-label" for="Habitat">Местообитание</label>
+                    <input id="Habitat" name="Habitat" type="text" value="@Model?.Habitat" class="bn-input" />
+                </div>
 
-            <div class="form-group">
-                <label asp-for="Taste" class="control-label">Вкус</label>
-                <input asp-for="Taste" class="form-control" />
-            </div>
+                <div class="bn-row-2">
+                    <div class="bn-field">
+                        <label class="bn-label" for="Season">Сезон</label>
+                        <input id="Season" name="Season" type="text" value="@Model?.Season" class="bn-input" />
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="Habitat" class="control-label">Местообитание</label>
-                <input asp-for="Habitat" class="form-control" />
-            </div>
+                    <div class="bn-field">
+                        <label class="bn-label" for="UsedPart">Използвана част</label>
+                        <input id="UsedPart" name="UsedPart" type="text" value="@Model?.UsedPart" class="bn-input" />
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="Season" class="control-label">Сезон</label>
-                <input asp-for="Season" class="form-control" />
-            </div>
+                <div class="bn-row-2">
+                    <div class="bn-field">
+                        <label class="bn-label" for="Aroma">Аромат</label>
+                        <input id="Aroma" name="Aroma" type="text" value="@Model?.Aroma" class="bn-input" />
+                    </div>
 
+                    <div class="bn-field">
+                        <label class="bn-label" for="Taste">Вкус</label>
+                        <input id="Taste" name="Taste" type="text" value="@Model?.Taste" class="bn-input" />
+                    </div>
+                </div>
 
-            <div class="form-check mb-2">
-                <input class="form-check-input"
-                       type="checkbox"
-                       name="IsPoisonous"
-                       value="true"
-                       @(Model?.IsPoisonous == true ? "checked" : "") />
-                <label class="form-check-label">
-                    Отровно
-                </label>
-            </div>
+                <div class="bn-row-2 bn-row-2--checks">
+                    <label class="bn-check">
+                        <input type="checkbox" name="IsPoisonous" value="true" @(Model?.IsPoisonous == true ? "checked" : "") />
+                        <span>Отровна</span>
+                    </label>
 
-            <div class="form-check mb-2">
-                <input class="form-check-input"
-                       type="checkbox"
-                       name="IsProtected"
-                       value="true"
-                       @(Model?.IsProtected == true ? "checked" : "") />
-                <label class="form-check-label">
-                    Защитено
-                </label>
-            </div>
-
-
-        @*  <div class="form-group form-check">
-                <input asp-for="IsPoisonous" class="form-check-input" />
-                <label asp-for="IsPoisonous" class="form-check-label">Отровно</label>
-            </div>
-
-            <div class="form-group form-check">
-                <input asp-for="IsProtected" class="form-check-input" />
-                <label asp-for="IsProtected" class="form-check-label">Защитено</label>
-            </div> *@
-
-            <div class="form-group">
-                <label asp-for="UsedPart" class="control-label">Използваема част</label>
-                <input asp-for="UsedPart" class="form-control" />
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Benefits" class="control-label">Ползи</label>
-                <input asp-for="Benefits" class="form-control" />
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Description" class="control-label">Описание</label>
-                <input asp-for="Description" class="form-control" />
-            </div>
-
-
-           
-            <div class="form-group">
-                <label>Upload Image</label>
-                <input type="file"
-                       name="ImageFile"
-                       class="form-control"
-                       accept="image/*"
-                       onchange="previewImage(event)" />
-                
-                       
-                       <div class="mt-2">
-                    <img id="imagePreview"
-                         src="#"
-                         alt="Preview"
-                         style="display:none; max-width:150px; max-height:150px; object-fit:cover; border-radius:6px;" />
+                    <label class="bn-check">
+                        <input type="checkbox" name="IsProtected" value="true" @(Model?.IsProtected == true ? "checked" : "") />
+                        <span>Защитена</span>
+                    </label>
                 </div>
             </div>
 
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+            <aside class="herb-form-side">
+                <div class="herb-form-card">
+                    <h2 class="herb-form-card__title">Снимка</h2>
 
-        </form>
-    </div>
-</div>
+                    <div class="bn-image">
+                        <div class="bn-image__frame">
+                            <div id="imagePreviewPlaceholder" class="bn-image__placeholder" aria-hidden="true"></div>
+                            <img id="imagePreview" class="bn-image__img" src="#" alt="Преглед на изображението" style="display:none;" />
+                        </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+                        <div class="bn-field">
+                            <label class="bn-label" for="ImageFile">Качи изображение</label>
+                            <input id="ImageFile"
+                                   type="file"
+                                   name="ImageFile"
+                                   class="bn-input"
+                                   accept="image/*"
+                                   onchange="previewImage(event)" />
+                        </div>
+
+                        <div class="bn-hint">
+                            Препоръчителен формат: JPG или PNG. Квадратна снимка изглежда най-добре.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="herb-form-card">
+                    <h2 class="herb-form-card__title">Текст</h2>
+
+                    <div class="bn-field">
+                        <label class="bn-label" for="Benefits">Ползи</label>
+                        <textarea id="Benefits" name="Benefits" class="bn-textarea" rows="4">@Model?.Benefits</textarea>
+                    </div>
+
+                    <div class="bn-field">
+                        <label class="bn-label" for="Description">Описание</label>
+                        <textarea id="Description" name="Description" class="bn-textarea" rows="6">@Model?.Description</textarea>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <div class="herb-form-footer">
+            <a class="bn-btn bn-btn--ghost" asp-action="Index">Отказ</a>
+            <button type="submit" class="bn-btn bn-btn--primary">Създай</button>
+        </div>
+    </form>
+</section>
 
 @section Scripts {
     @{
-   
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
@@ -152,20 +155,17 @@
         function previewImage(event) {
             const input = event.target;
             const preview = document.getElementById('imagePreview');
+            const placeholder = document.getElementById('imagePreviewPlaceholder');
 
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
+            if (!input.files || !input.files[0]) return;
 
-                reader.onload = function (e) {
-                    preview.src = e.target.result;
-                    preview.style.display = "block";
-                };
-
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                preview.style.display = "none";
-            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                placeholder.style.display = "none";
+                preview.src = e.target.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(input.files[0]);
         }
     </script>
 }
-

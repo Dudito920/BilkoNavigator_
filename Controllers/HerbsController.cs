@@ -1,5 +1,6 @@
 ﻿using BilkoNavigator_.Data;
 using BilkoNavigator_.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -51,6 +52,7 @@ namespace BilkoNavigator_.Controllers
         }
 
         // GET: Herbs/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -58,6 +60,7 @@ namespace BilkoNavigator_.Controllers
 
        
         // POST: Herbs/Create
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Herb herb)
@@ -117,8 +120,74 @@ namespace BilkoNavigator_.Controllers
             return View(herbs);
         }
 
+        // GET: Herbs/Search?query=...
+        [HttpGet]
+        public async Task<IActionResult> Search(string? query, string? q, string? search)
+        {
+            var term = query;
+            if (string.IsNullOrWhiteSpace(term)) term = q;
+            if (string.IsNullOrWhiteSpace(term)) term = search;
+            term = term?.Trim();
+
+            IQueryable<Herb> herbsQuery = _context.Herbs
+                .AsNoTracking()
+                .Include(h => h.Image);
+
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                herbsQuery = herbsQuery.Where(h =>
+                    h.PopularName.Contains(term) ||
+                    (h.LatinName != null && h.LatinName.Contains(term)) ||
+                    (h.Habitat != null && h.Habitat.Contains(term)) ||
+                    (h.DialectNames != null && h.DialectNames.Contains(term))
+                );
+            }
+
+            var herbs = await herbsQuery
+                .OrderBy(h => h.PopularName)
+                .ToListAsync();
+
+            ViewData["SearchQuery"] = term ?? string.Empty;
+            return View("Index", herbs);
+        }
+
+        // GET: Herbs/LabelMap
+        [HttpGet]
+        public async Task<IActionResult> LabelMap()
+        {
+            var map = await _context.Herbs
+                .AsNoTracking()
+                .Where(h => h.LatinName != null && h.PopularName != null)
+                .Select(h => new
+                {
+                    latin = h.LatinName!,
+                    name = h.PopularName
+                })
+                .ToListAsync();
+
+            return Json(map);
+        }
+
+        // GET: Herbs/PopularMap
+        [HttpGet]
+        public async Task<IActionResult> PopularMap()
+        {
+            var map = await _context.Herbs
+                .AsNoTracking()
+                .Where(h => h.PopularName != null)
+                .Select(h => new
+                {
+                    id = h.Id,
+                    name = h.PopularName
+                })
+                .ToListAsync();
+
+            return Json(map);
+        }
+
 
         // GET: Herbs/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
         {
             var herb = await _context.Herbs
@@ -131,6 +200,7 @@ namespace BilkoNavigator_.Controllers
         }
 
         // POST: Herbs/Edit/5
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Herb herb)
@@ -176,6 +246,7 @@ namespace BilkoNavigator_.Controllers
 
 
         // POST: Herbs/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -197,6 +268,7 @@ namespace BilkoNavigator_.Controllers
         }
 
         // GET: Herbs/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

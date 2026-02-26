@@ -1,11 +1,9 @@
 using BilkoNavigator_.Data;
 using BilkoNavigator_.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BilkoNavigator_.Controllers
 {
@@ -24,31 +22,33 @@ namespace BilkoNavigator_.Controllers
             public int HerbId { get; set; }
             public double Latitude { get; set; }
             public double Longitude { get; set; }
-            public string Description { get; set; }
+            public string? Description { get; set; }
         }
 
+        [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([FromBody] HerbFindingDto dto)
         {
             if (dto == null)
-                return BadRequest("DTO е null");
+                return BadRequest("DTO Рµ null");
 
             if (dto.HerbId == 0)
-                return BadRequest("HerbId е 0");
+                return BadRequest("HerbId Рµ 0");
 
             if (dto.Latitude == 0 || dto.Longitude == 0)
-                return BadRequest("Лат/Лон са 0");
+                return BadRequest("Р›Р°С‚/Р›РѕРЅ СЃР° 0");
 
             var herb = await _context.Herbs.FindAsync(dto.HerbId);
             if (herb == null)
-                return NotFound("Билката не съществува");
+                return NotFound("Р‘РёР»РєР°С‚Р° РЅРµ СЃСЉС‰РµСЃС‚РІСѓРІР°");
 
             if (herb.IsProtected)
-                return Forbid("Защитена билка");
+                return Forbid("Р—Р°С‰РёС‚РµРЅР° Р±РёР»РєР°");
 
             var userId = _userManager.GetUserId(User);
             if (userId == null)
-                return Unauthorized("Не си логнат");
+                return Unauthorized("РќРµ СЃРё Р»РѕРіРЅР°С‚");
 
             var location = new Location
             {

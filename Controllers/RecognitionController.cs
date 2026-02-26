@@ -16,6 +16,13 @@ namespace BilkoNavigator_.Controllers
             _context = context;
             _userManager = userManager;
         }
+
+        [HttpGet]
+        public IActionResult Index()
+        {
+            return View("Upload");
+        }
+
         [HttpGet]
         public IActionResult Upload()
         {

@@ -1,0 +1,23 @@
+@page
+@model BilkoNavigator_.Areas.Identity.Pages.Account.AccessDeniedModel
+@{
+    ViewData["Title"] = "Достъп отказан";
+}
+
+<section class="auth-page">
+    <div class="auth-shell">
+        <div class="auth-card">
+            <header class="auth-header">
+                <h1 class="auth-title">Достъп отказан</h1>
+                <p class="auth-subtitle">
+                    Нямате необходимите права за тази операция. Редакция и изтриване на билки са позволени само за администратор.
+                </p>
+            </header>
+
+            <div class="auth-links">
+                <a asp-page="/Index" asp-area="">Към начало</a>
+                <a asp-controller="Herbs" asp-action="Index">Към каталога</a>
+            </div>
+        </div>
+    </div>
+</section>

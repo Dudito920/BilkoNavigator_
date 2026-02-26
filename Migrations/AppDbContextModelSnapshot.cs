@@ -52,7 +52,7 @@ namespace BilkoNavigator_.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LatinName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PopularName")
                         .IsRequired()
@@ -68,6 +68,10 @@ namespace BilkoNavigator_.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LatinName")
+                        .IsUnique()
+                        .HasFilter("[LatinName] IS NOT NULL");
 
                     b.ToTable("Herbs");
                 });

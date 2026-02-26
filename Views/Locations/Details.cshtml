@@ -1,30 +1,30 @@
 ﻿@model BilkoNavigator_.Models.Location
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Детайли";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+<h1>Детайли</h1>
 
 <div>
-    <h4>Location</h4>
+    <h4>Локация</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Latitude)
+            Ширина
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Latitude)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Longitude)
+            Дължина
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Longitude)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
+            Описание
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Description)
@@ -32,6 +32,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Редакция</a> |
+    <a asp-action="Index">Назад към списъка</a>
 </div>

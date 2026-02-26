@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Noto+Serif:wght@400;600;700&display=swap');
+
+:root {
+    --color-primary: #2E7D32;
+    --color-primary-hover: #256628;
+    --color-secondary: #81C784;
+    --color-accent: #A5D6A7;
+    --color-bg: #F5F7F2;
+    --color-surface: #FFFFFF;
+    --color-text: #263238;
+    --color-text-muted: #54626A;
+    --color-border: #DADDD8;
+    --color-danger: #E57373;
+    --color-warning: #FFB74D;
+    --color-success: #66BB6A;
+
+
+    --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --font-heading: "Noto Serif", Georgia, "Times New Roman", serif;
+    --fs-1: 12px;
+    --fs-2: 14px;
+    --fs-3: 16px;
+    --fs-4: 18px;
+    --fs-5: 22px;
+    --fs-6: 28px;
+    --fs-7: 36px;
+    --lh-body: 1.55;
+    --lh-tight: 1.2;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-soft: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+html, body {
+    font-family: var(--font-body);
+    font-size: var(--fs-3);
+    line-height: var(--lh-body);
+    color: var(--color-text);
+    background: var(--color-bg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    line-height: var(--lh-tight);
+    color: var(--color-text);
+}

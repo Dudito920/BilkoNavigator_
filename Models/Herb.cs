@@ -8,7 +8,7 @@ namespace BilkoNavigator_.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Популярното име е задължително")]
-        public string PopularName { get; set; }
+        public string PopularName { get; set; } = string.Empty;
 
         
         public string? LatinName { get; set; }
