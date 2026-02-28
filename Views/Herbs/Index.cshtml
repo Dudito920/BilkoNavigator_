@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Каталог билки";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var currentSearch = ViewData["SearchQuery"] as string ?? string.Empty;
+    var currentStatus = ViewData["StatusFilter"] as string ?? string.Empty;
 }
 
 <section class="herbs-page">
@@ -23,27 +25,23 @@
         <form class="herbs-search" asp-controller="Herbs" asp-action="Search" method="get">
             <label class="sr-only" for="herbSearch">Търсене</label>
             <input id="herbSearch" name="query" class="bn-input" type="search"
-                   value="@(ViewData["SearchQuery"] as string ?? "")"
+                   value="@currentSearch"
                    placeholder="Търси по име, латинско име, местообитание..." />
+            <input type="hidden" name="status" value="@currentStatus" />
             <button type="submit" class="sr-only">Търсене</button>
         </form>
 
         <div class="herbs-filters">
-            <select class="bn-select" aria-label="Сезон">
-                <option value="">Сезон: всички</option>
-                <option>Пролет</option>
-                <option>Лято</option>
-                <option>Есен</option>
-                <option>Зима</option>
-            </select>
-
-            <select class="bn-select" aria-label="Статус">
-                <option value="">Статус: всички</option>
-                <option>Защитени</option>
-                <option>Отровни</option>
-                <option>Без ограничения</option>
-            </select>
-
+            <form asp-controller="Herbs" asp-action="Search" method="get">
+                <input type="hidden" name="query" value="@currentSearch" />
+                <label class="sr-only" for="statusFilter">Статус</label>
+                <select id="statusFilter" name="status" class="bn-select" aria-label="Статус" onchange="this.form.submit()">
+                    <option value="" selected="@(string.IsNullOrEmpty(currentStatus) ? "selected" : null)">Статус: всички</option>
+                    <option value="protected" selected="@(currentStatus == "protected" ? "selected" : null)">Защитени</option>
+                    <option value="poisonous" selected="@(currentStatus == "poisonous" ? "selected" : null)">Отровни</option>
+                    <option value="unrestricted" selected="@(currentStatus == "unrestricted" ? "selected" : null)">Без ограничения</option>
+                </select>
+            </form>
             <a class="bn-btn bn-btn--ghost" asp-controller="Map" asp-action="Index">Виж на карта</a>
         </div>
     </div>
@@ -80,16 +78,6 @@
                             <div class="herb-card__placeholder" aria-hidden="true"></div>
                         }
 
-                        <div class="herb-card__badges">
-                            @if (item.IsProtected)
-                            {
-                                <span class="bn-badge bn-badge--info">Защитена</span>
-                            }
-                            @if (item.IsPoisonous)
-                            {
-                                <span class="bn-badge bn-badge--danger">Отровна</span>
-                            }
-                        </div>
                     </a>
 
                     <div class="herb-card__body">
@@ -103,6 +91,20 @@
                                 <div class="herb-card__latin">@item.LatinName</div>
                             }
                         </div>
+
+                        @if (item.IsProtected || item.IsPoisonous)
+                        {
+                            <div class="herb-card__badges">
+                                @if (item.IsProtected)
+                                {
+                                    <span class="bn-badge bn-badge--info">Защитена</span>
+                                }
+                                @if (item.IsPoisonous)
+                                {
+                                    <span class="bn-badge bn-badge--danger">Отровна</span>
+                                }
+                            </div>
+                        }
 
                         <div class="herb-meta">
                             @if (!string.IsNullOrWhiteSpace(item.Season))

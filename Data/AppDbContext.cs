@@ -26,12 +26,6 @@ namespace BilkoNavigator_.Data
             modelBuilder.Entity<Herb>()
                 .HasIndex(h => h.LatinName)
                 .IsUnique();
-
-            modelBuilder.Entity<Herb>()
-                .HasOne(h => h.Image)
-                .WithOne(i => i.Herb)
-                .HasForeignKey<HerbImage>(i => i.HerbId)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

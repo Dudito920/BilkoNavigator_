@@ -23,6 +23,22 @@ namespace BilkoNavigator_.Controllers
         [HttpGet]
         public async Task<IActionResult> Users()
         {
+            static string ExtractNameBeforeAt(string? value, string fallback)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return fallback;
+                }
+
+                var atIndex = value.IndexOf('@');
+                if (atIndex > 0)
+                {
+                    return value[..atIndex];
+                }
+
+                return value;
+            }
+
             var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
             var adminIds = adminUsers.Select(u => u.Id).ToHashSet();
 
@@ -68,7 +84,7 @@ namespace BilkoNavigator_.Controllers
                     {
                         UserId = u.Id,
                         Email = u.Email ?? "(без имейл)",
-                        UserName = u.UserName ?? "(без потребителско име)",
+                        UserName = ExtractNameBeforeAt(u.Email ?? u.UserName, "(без потребителско име)"),
                         TotalFindings = userFindings.Count,
                         HerbSummaries = herbSummaries
                     };

@@ -111,23 +111,34 @@ namespace BilkoNavigator_.Controllers
 
         // GET: Herbs/Index
        
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? status = null)
         {
-            var herbs = await _context.Herbs
+            status = string.IsNullOrWhiteSpace(status) ? null : status.Trim().ToLowerInvariant();
+
+            IQueryable<Herb> herbsQuery = _context.Herbs
+                .AsNoTracking()
                 .Include(h => h.Image)
-                .ToListAsync();
+                .OrderBy(h => h.PopularName);
+
+            herbsQuery = ApplyStatusFilter(herbsQuery, status);
+
+            var herbs = await herbsQuery.ToListAsync();
+
+            ViewData["SearchQuery"] = string.Empty;
+            ViewData["StatusFilter"] = status ?? string.Empty;
 
             return View(herbs);
         }
 
         // GET: Herbs/Search?query=...
         [HttpGet]
-        public async Task<IActionResult> Search(string? query, string? q, string? search)
+        public async Task<IActionResult> Search(string? query, string? q, string? search, string? status = null)
         {
             var term = query;
             if (string.IsNullOrWhiteSpace(term)) term = q;
             if (string.IsNullOrWhiteSpace(term)) term = search;
             term = term?.Trim();
+            status = string.IsNullOrWhiteSpace(status) ? null : status.Trim().ToLowerInvariant();
 
             IQueryable<Herb> herbsQuery = _context.Herbs
                 .AsNoTracking()
@@ -143,11 +154,14 @@ namespace BilkoNavigator_.Controllers
                 );
             }
 
+            herbsQuery = ApplyStatusFilter(herbsQuery, status);
+
             var herbs = await herbsQuery
                 .OrderBy(h => h.PopularName)
                 .ToListAsync();
 
             ViewData["SearchQuery"] = term ?? string.Empty;
+            ViewData["StatusFilter"] = status ?? string.Empty;
             return View("Index", herbs);
         }
 
@@ -265,6 +279,22 @@ namespace BilkoNavigator_.Controllers
         private bool HerbExists(int id)
         {
             return _context.Herbs.Any(e => e.Id == id);
+        }
+
+        private static IQueryable<Herb> ApplyStatusFilter(IQueryable<Herb> query, string? status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                return query;
+            }
+
+            return status.Trim().ToLowerInvariant() switch
+            {
+                "protected" => query.Where(h => h.IsProtected),
+                "poisonous" => query.Where(h => h.IsPoisonous),
+                "unrestricted" => query.Where(h => !h.IsProtected && !h.IsPoisonous),
+                _ => query
+            };
         }
 
         // GET: Herbs/Delete/5

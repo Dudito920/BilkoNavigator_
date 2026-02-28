@@ -1,0 +1,157 @@
+/* Recognition page */
+.recognition-page {
+    padding: 2rem 0;
+}
+
+.recognition-header {
+    margin-bottom: 1.5rem;
+}
+
+.recognition-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.recognition-actions,
+.recognition-upload {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.recognition-status {
+    font-size: 0.95rem;
+    color: #4b5563;
+}
+
+.recognition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+}
+
+.recognition-preview__box,
+.recognition-results__box {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    min-height: 260px;
+    background: #fff;
+}
+
+.recognition-placeholder {
+    color: #9ca3af;
+}
+
+.recognition-preview canvas {
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+.recognition-results__box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rec-top {
+    font-size: 1.05rem;
+}
+
+.rec-muted {
+    color: #9ca3af;
+}
+
+@media (max-width: 575.98px) {
+    .recognition-tools {
+        align-items: flex-start;
+    }
+}
+
+.recognition-preview video {
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+.rec-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #4b5563;
+    font-weight: 600;
+}
+
+.rec-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5f5;
+    border-top-color: #3b82f6;
+    border-radius: 999px;
+    animation: rec-spin 0.9s linear infinite;
+}
+
+@keyframes rec-spin {
+    to { transform: rotate(360deg); }
+}
+
+.recognition-image {
+    max-width: 100%;
+    border-radius: 10px;
+    display: block;
+}
+
+.rec-mark-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+}
+
+.rec-mark-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 20, 14, 0.55);
+}
+
+.rec-mark-modal__dialog {
+    position: relative;
+    width: min(520px, calc(100vw - 28px));
+    border-radius: 14px;
+    border: 1px solid rgba(45, 66, 52, 0.2);
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(20, 30, 24, 0.3);
+    padding: 18px;
+}
+
+.rec-mark-modal__title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #173523;
+}
+
+.rec-mark-modal__text {
+    margin: 10px 0 0;
+    color: #2f4a3a;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.rec-mark-modal__hint {
+    margin: 10px 0 0;
+    color: #4f6353;
+    font-size: 0.9rem;
+}
+
+.rec-mark-modal__actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+

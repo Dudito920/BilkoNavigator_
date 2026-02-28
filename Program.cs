@@ -6,33 +6,11 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-//Добавяме услуги към контейнера.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseSqlServer(
-//        builder.Configuration.GetConnectionString("DefaultConnection")));
-
-//builder.Services.AddDefaultIdentity<User>(options =>
-//{
-//    options.SignIn.RequireConfirmedAccount = true;
-//    options.Password.RequireDigit = false;
-//    options.Password.RequiredLength = 6;
-//    options.Password.RequiredUniqueChars = 0;
-//    options.Password.RequireNonAlphanumeric = false;
-//    options.Password.RequireLowercase = false;
-//    options.Password.RequireUppercase = false;
-//})
-//    .AddRoles<IdentityRole>()
-//    .AddEntityFrameworkStores<AppDbContext>();
-
-//Add Identity
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
@@ -45,28 +23,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 builder.Services.AddRazorPages();
 
-
-
 builder.Services.AddControllersWithViews();
-
-
-//builder.Services.Configure<IdentityOptions>(options =>
-//{
-//    options.Password.RequireDigit = false;
-//    options.Password.RequiredLength = 6;
-//    options.Password.RequiredUniqueChars = 0;
-//    options.Password.RequireNonAlphanumeric = false;
-//    options.Password.RequireLowercase = false;
-//    options.Password.RequireUppercase = false;
-//});
-
 builder.Services.AddRazorPages();
-
-// Register IEmailSender with a basic implementation
 builder.Services.AddTransient<IEmailSender, EmailSender>();
-
-//builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
-
 var app = builder.Build();
 
 //Seed data 
